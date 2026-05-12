@@ -406,7 +406,37 @@ import { API_BASE_URL } from '$lib/env_config';
                                 class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-[#424859]/50 dark:text-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none font-mono" 
                                 placeholder="qwen-plus" 
                             />
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500">Ex: `qwen-turbo`, `qwen-plus`, `qwen-max`, `qwen-long`.</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">Ex: `qwen-plus`, `qwen-max`, `qwen-coder-plus`.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label for="qwenBaseUrlInput" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Qwen Endpoint (Base URL)</label>
+                                <div class="flex gap-2">
+                                    <button 
+                                        onclick={() => qwenState.base_url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'}
+                                        class="text-[9px] font-bold uppercase tracking-tighter px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-orange-600 rounded transition-colors cursor-pointer"
+                                    >
+                                        China (Mainland)
+                                    </button>
+                                    <button 
+                                        onclick={() => qwenState.base_url = 'https://dashscope-intl.aliyuncs.com/api/v1'}
+                                        class="text-[9px] font-bold uppercase tracking-tighter px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-orange-600 rounded transition-colors cursor-pointer"
+                                    >
+                                        Singapore (Bailian)
+                                    </button>
+                                </div>
+                            </div>
+                            <input 
+                                id="qwenBaseUrlInput"
+                                bind:value={qwenState.base_url} 
+                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-[#424859]/50 dark:text-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none font-mono" 
+                                placeholder="https://dashscope.aliyuncs.com/..." 
+                            />
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
+                                Use `https://dashscope-intl.aliyuncs.com/api/v1` para a região de Singapura. 
+                                <br/>Note: Endereços que contém `/v1` e não `/services/aigc` usarão o protocolo OpenAI.
+                            </p>
                         </div>
                     </div>
                     

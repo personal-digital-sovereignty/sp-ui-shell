@@ -139,6 +139,7 @@ export const qwenState = $state({
     enabled: false,
     api_key: '',
     default_model: 'qwen-plus',
+    base_url: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'
 });
 
 export async function loadQwenSettings() {
@@ -151,6 +152,7 @@ export async function loadQwenSettings() {
             qwenState.enabled = data.enabled || false;
             qwenState.api_key = data.api_key || '';
             qwenState.default_model = data.default_model || 'qwen-plus';
+            qwenState.base_url = data.base_url || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
         }
     } catch (e) {
         console.error("Failed to load Qwen settings:", e);
@@ -168,7 +170,8 @@ export async function saveQwenSettings() {
             body: JSON.stringify({
                 enabled: qwenState.enabled,
                 api_key: qwenState.api_key,
-                default_model: qwenState.default_model
+                default_model: qwenState.default_model,
+                base_url: qwenState.base_url
             })
         });
         return res.ok;
