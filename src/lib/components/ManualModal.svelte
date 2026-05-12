@@ -1,7 +1,7 @@
 <script lang="ts">
     import { BookOpen, Printer, X } from 'lucide-svelte';
     import { marked } from 'marked';
-    import userGuideRaw from '../../../../docs/user_guide.md?raw';
+    import userGuideRaw from '../../../docs/user_guide.md?raw';
 
     let { isOpen = $bindable(false) } = $props();
 

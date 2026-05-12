@@ -1,7 +1,7 @@
 <script lang="ts">
     import { X, History } from 'lucide-svelte';
     import { marked } from 'marked';
-    import changelogRaw from '../../../../CHANGELOG.md?raw';
+    import changelogRaw from '../../../CHANGELOG.md?raw';
     
     let { isOpen = $bindable(false) } = $props();
 
