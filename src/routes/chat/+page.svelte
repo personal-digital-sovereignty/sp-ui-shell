@@ -1,8 +1,8 @@
 <script>
-    import ChatPanel from '$lib/components/ChatPanel.svelte';
-    import ChatHistorySidebar from '$lib/components/ChatHistorySidebar.svelte';
+    import ChatPanel from 'sp_ui_chat/ChatPanel';
+    import ChatHistorySidebar from 'sp_ui_chat/ChatHistorySidebar';
     import { MessageSquare, Settings, Plus } from 'lucide-svelte';
-    import { settingsState } from '$lib/settings.svelte';
+    import { settingsState } from '@sp/ui-core/settings';
 
     // Start closed on small screens/windows logically, but let's default to open since it's desktop primary, 
     // but the user wants to reduce it. We'll default to open and let them close it cleanly.
