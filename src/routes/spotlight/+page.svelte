@@ -1,5 +1,5 @@
 <script lang="ts">
-    import ChatPanel from '$lib/components/ChatPanel.svelte';
+    import ChatPanel from 'sp_ui_chat/ChatPanel';
     import { Search } from 'lucide-svelte';
     import { globalState } from '$lib/state.svelte.js';
     import { onMount } from 'svelte';
