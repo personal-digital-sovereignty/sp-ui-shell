@@ -4,7 +4,7 @@ import { API_BASE_URL } from '$lib/env_config';
   import '../app.css';
   import { globalState } from '$lib/state.svelte.js';
   import { telemetryState, connectTelemetry, disconnectTelemetry } from '$lib/telemetry.svelte';
-  import { Home, MessageCircle, Folder, LayoutGrid, Settings, Cloud, Activity, Database, Bell, Network, User } from 'lucide-svelte';
+  import { Home, MessageCircle, Folder, LayoutGrid, Settings, Cloud, Activity, Database, Bell, Network, User, Code2 } from 'lucide-svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount, onDestroy } from 'svelte';
@@ -131,6 +131,10 @@ import { API_BASE_URL } from '$lib/env_config';
       <a class="flex items-center {globalState.isSidebarOpen ? 'px-4 justify-start' : 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/projects') ? 'bg-white/10 text-white font-medium shadow-sm' : 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}" href="/projects">
         <LayoutGrid class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
         {#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Projects</span>{/if}
+      </a>
+      <a class="flex items-center {globalState.isSidebarOpen ? 'px-4 justify-start' : 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/coding') ? 'bg-white/10 text-white font-medium shadow-sm' : 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}" href="/coding">
+        <Code2 class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
+        {#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Coding</span>{/if}
       </a>
 
       <!-- System Modules Category -->
