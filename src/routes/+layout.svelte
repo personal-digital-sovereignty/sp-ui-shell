@@ -21,7 +21,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import InlineSpotlight from '$lib/components/InlineSpotlight.svelte';
+	import InlineSpotlight from 'sp_ui_chat/InlineSpotlight';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import ManualModal from '$lib/components/ManualModal.svelte';
@@ -113,7 +113,7 @@
 	<div
 		class="h-screen print:h-auto print:overflow-visible w-full flex overflow-hidden antialiased text-slate-800 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#080e1d] font-sans"
 	>
-		<InlineSpotlight />
+		<InlineSpotlight onNavigate={goto} />
 
 		<aside
 			class="{globalState.isSidebarOpen
