@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '$lib/env_config';
+import { API_BASE_URL } from '@sp/ui-core/config';
 export const trainerState = $state({
     // Global Engine Triggers
     internetToRagActive: true,
@@ -39,14 +39,14 @@ export const trainerState = $state({
     memoryBw: "1,024 GB/s",
     temperatureC: 64,
     vramHistory: new Array(12).fill(0),
-    
+
     // Distillation Engine
     distillationEpochs: 3,
     distillationBatchSize: 4,
     hasOpenAiKey: false,
     hasAnthropicKey: false,
     datasetSizeCount: 0,
-    
+
     // Deep Research Orchestrator
     deepResearchPrompt: "",
     isDeepResearchActive: false,
@@ -89,7 +89,7 @@ export async function populateTrainerModels() {
             const data = await resSettings.json();
             trainerState.hasOpenAiKey = !!data.openai_api_key;
             trainerState.hasAnthropicKey = !!data.anthropic_api_key;
-            
+
             if (trainerState.hasOpenAiKey) {
                 newModels.push({ id: 'GPT-4o', name: 'GPT-4o (OpenAI)', type: 'external', provider: 'openai', sizeB: 1000, badge: 'Tier 1 (Elite)' });
             }
@@ -97,10 +97,10 @@ export async function populateTrainerModels() {
                 newModels.push({ id: 'Claude-3.5-Sonnet', name: 'Claude 3.5 Sonnet (Anthropic)', type: 'external', provider: 'anthropic', sizeB: 1000, badge: 'Tier 1 (Elite)' });
             }
         }
-        
+
         AI_MODELS.splice(0, AI_MODELS.length, ...newModels);
-        
-    } catch(e) {
+
+    } catch (e) {
         console.error("Failed to populate models:", e);
     }
 }
@@ -116,10 +116,10 @@ export async function fetchTrainerStats() {
             if (data.recently_acquired) {
                 trainerState.recentlyAcquiredKnowledge = data.recently_acquired;
             }
-            
+
             // Telemetry
             trainerState.isTraining = data.unsloth?.is_training || false;
-            if(data.unsloth) {
+            if (data.unsloth) {
                 trainerState.vramUsageGb = data.unsloth.vram_usage_gb || 0;
                 trainerState.vramTotalGb = data.unsloth.vram_total_gb || 24.0;
                 trainerState.epochCurrent = data.unsloth.epoch_current || 0;
@@ -141,7 +141,7 @@ export async function fetchTrainerStats() {
                 }
             }
         }
-    } catch(e) {
+    } catch (e) {
         console.error("Failed to fetch Live Trainer Telemetry from Axum:", e);
     }
 }
@@ -154,7 +154,7 @@ export async function sendUnslothControl(action: 'play' | 'pause' | 'stop') {
             body: JSON.stringify({ action })
         });
         await fetchTrainerStats(); // Force refresh UI
-    } catch(e) {
+    } catch (e) {
         console.error("Unsloth RPC failed:", action, e);
     }
 }

@@ -1,17 +1,20 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { trainerState, exportReflectionLogs, getSelfCorrectRatio } from '$lib/trainer.svelte';
-    import { API_BASE_URL } from '$lib/env_config';
-    import { addNotification } from '$lib/state.svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { trainerState, exportReflectionLogs, getSelfCorrectRatio } from '$lib/trainer.svelte';
+	import { API_BASE_URL } from '@sp/ui-core/config';
+	import { addNotification } from '$lib/state.svelte';
 
-    let isReflecting = $state(false);
-    let eventSource: EventSource | null = null;
-    let modelMatrix: any[] = $state([]);
-    let targetModel = $state("qwen2.5-coder:1.5b"); // Default fallback
-    
-    // Dataset JSON state
-    let validationStatus = $state<{valid: boolean | null, msg: string}>({valid: null, msg: "UTF-8 • JSON"});
-    let reflectionDatasetJson = $state(`{
+	let isReflecting = $state(false);
+	let eventSource: EventSource | null = null;
+	let modelMatrix: any[] = $state([]);
+	let targetModel = $state('qwen2.5-coder:1.5b'); // Default fallback
+
+	// Dataset JSON state
+	let validationStatus = $state<{ valid: boolean | null; msg: string }>({
+		valid: null,
+		msg: 'UTF-8 • JSON'
+	});
+	let reflectionDatasetJson = $state(`{
   "step_id": "reflection_v4_092",
   "input_query": "Summarize the quarterly risk report for EMEA.",
   "chain_of_thought": [
@@ -28,371 +31,505 @@
   "output_buffer": "The EMEA region shows a 12% rise in political risk due to shifts in border policies..."
 }`);
 
-    let liveStreamLogs = $state<any[]>([]);
+	let liveStreamLogs = $state<any[]>([]);
 
-    onMount(() => {
-        // Fetch model matrix to validate reasoner capability
-        fetch(`${API_BASE_URL}/v1/settings/model_capabilities`)
-            .then(res => {
-                if (res.ok) return res.json();
-                throw new Error("Bad response");
-            })
-            .then(data => { modelMatrix = data; })
-            .catch(e => console.error("Failed to fetch capabilities", e));
+	onMount(() => {
+		// Fetch model matrix to validate reasoner capability
+		fetch(`${API_BASE_URL}/v1/settings/model_capabilities`)
+			.then((res) => {
+				if (res.ok) return res.json();
+				throw new Error('Bad response');
+			})
+			.then((data) => {
+				modelMatrix = data;
+			})
+			.catch((e) => console.error('Failed to fetch capabilities', e));
 
-        // S3: Load persisted reflection settings from SQLite
-        fetch(`${API_BASE_URL}/v1/engineer/reflection/settings`)
-            .then(res => {
-                if (res.ok) return res.json();
-                throw new Error("Bad response");
-            })
-            .then(data => {
-                if (typeof data.reasoning_depth === 'number') trainerState.reasoningDepth = data.reasoning_depth;
-                if (typeof data.audit_intensity === 'number') trainerState.auditIntensity = data.audit_intensity;
-                if (typeof data.internal_monologue === 'boolean') trainerState.internalMonologue = data.internal_monologue;
-            })
-            .catch(e => console.error("Failed to load reflection settings", e));
-    });
+		// S3: Load persisted reflection settings from SQLite
+		fetch(`${API_BASE_URL}/v1/engineer/reflection/settings`)
+			.then((res) => {
+				if (res.ok) return res.json();
+				throw new Error('Bad response');
+			})
+			.then((data) => {
+				if (typeof data.reasoning_depth === 'number')
+					trainerState.reasoningDepth = data.reasoning_depth;
+				if (typeof data.audit_intensity === 'number')
+					trainerState.auditIntensity = data.audit_intensity;
+				if (typeof data.internal_monologue === 'boolean')
+					trainerState.internalMonologue = data.internal_monologue;
+			})
+			.catch((e) => console.error('Failed to load reflection settings', e));
+	});
 
-    onDestroy(() => {
-        if (eventSource) eventSource.close();
-    });
+	onDestroy(() => {
+		if (eventSource) eventSource.close();
+	});
 
-    function validateDataset() {
-        try {
-            JSON.parse(reflectionDatasetJson);
-            validationStatus = { valid: true, msg: "Syntax OK" };
-            setTimeout(() => validationStatus.msg = "UTF-8 • JSON", 3000);
-            return true;
-        } catch(e: any) {
-            validationStatus = { valid: false, msg: e.message };
-            return false;
-        }
-    }
+	function validateDataset() {
+		try {
+			JSON.parse(reflectionDatasetJson);
+			validationStatus = { valid: true, msg: 'Syntax OK' };
+			setTimeout(() => (validationStatus.msg = 'UTF-8 • JSON'), 3000);
+			return true;
+		} catch (e: any) {
+			validationStatus = { valid: false, msg: e.message };
+			return false;
+		}
+	}
 
-    // S3: Persist settings to backend when sliders change
-    async function persistSettings() {
-        try {
-            await fetch(`${API_BASE_URL}/v1/engineer/reflection/settings`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    reasoning_depth: trainerState.reasoningDepth,
-                    audit_intensity: trainerState.auditIntensity,
-                    internal_monologue: trainerState.internalMonologue
-                })
-            });
-        } catch(e) {
-            console.error("Failed to persist reflection settings", e);
-        }
-    }
+	// S3: Persist settings to backend when sliders change
+	async function persistSettings() {
+		try {
+			await fetch(`${API_BASE_URL}/v1/engineer/reflection/settings`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					reasoning_depth: trainerState.reasoningDepth,
+					audit_intensity: trainerState.auditIntensity,
+					internal_monologue: trainerState.internalMonologue
+				})
+			});
+		} catch (e) {
+			console.error('Failed to persist reflection settings', e);
+		}
+	}
 
-    async function applyToTraining() {
-        if (!validateDataset()) {
-            // O2: Use helper addNotification() instead of inline unshift
-            addNotification("JSON Inválido", "Verifique a sintaxe antes de aplicar.");
-            return;
-        }
+	async function applyToTraining() {
+		if (!validateDataset()) {
+			// O2: Use helper addNotification() instead of inline unshift
+			addNotification('JSON Inválido', 'Verifique a sintaxe antes de aplicar.');
+			return;
+		}
 
-        try {
-            const res = await fetch(`${API_BASE_URL}/v1/engineer/reflection/apply`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                // G3: Send model_tag alongside payload_json
-                body: JSON.stringify({ model_tag: targetModel, payload_json: reflectionDatasetJson })
-            });
-            if (res.ok) {
-                addNotification("Dataset Injetado", "Raciocínio gravado no SQLite para Fine-Tuning.");
-            } else {
-                addNotification("Erro na Gravação", "Verifique logs da API Axum.");
-            }
-        } catch(e: any) {
-            addNotification("Network Error", e.message);
-        }
-    }
+		try {
+			const res = await fetch(`${API_BASE_URL}/v1/engineer/reflection/apply`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				// G3: Send model_tag alongside payload_json
+				body: JSON.stringify({ model_tag: targetModel, payload_json: reflectionDatasetJson })
+			});
+			if (res.ok) {
+				addNotification('Dataset Injetado', 'Raciocínio gravado no SQLite para Fine-Tuning.');
+			} else {
+				addNotification('Erro na Gravação', 'Verifique logs da API Axum.');
+			}
+		} catch (e: any) {
+			addNotification('Network Error', e.message);
+		}
+	}
 
-    function cleanupSimulation() {
-        isReflecting = false;
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-        }
-    }
+	function cleanupSimulation() {
+		isReflecting = false;
+		if (eventSource) {
+			eventSource.close();
+			eventSource = null;
+		}
+	}
 
-    async function launchSimulation() {
-        if (isReflecting) return;
-        
-        // Blindspot Warning Check (client-side pre-filter, server also validates)
-        let capability = modelMatrix.find(m => m.model_name === targetModel);
-        if (capability && !capability.is_reasoner) {
-            addNotification("Acesso Negado (Trava Cognitiva)", `O modelo '${targetModel}' não possui o flag 'reasoner'. Inferências cegas corromperiam o log do laboratório.`);
-            return;
-        }
+	async function launchSimulation() {
+		if (isReflecting) return;
 
-        isReflecting = true;
-        liveStreamLogs = [];
-        addNotification("Reflection SSE", "Iniciando Server-Sent Events...");
+		// Blindspot Warning Check (client-side pre-filter, server also validates)
+		let capability = modelMatrix.find((m) => m.model_name === targetModel);
+		if (capability && !capability.is_reasoner) {
+			addNotification(
+				'Acesso Negado (Trava Cognitiva)',
+				`O modelo '${targetModel}' não possui o flag 'reasoner'. Inferências cegas corromperiam o log do laboratório.`
+			);
+			return;
+		}
 
-        if (eventSource) eventSource.close();
-        eventSource = new EventSource(`${API_BASE_URL}/v1/engineer/reflection/stream`);
-        
-        eventSource.onmessage = (e) => {
-            if (e.data === "keep-alive") return;
-            try {
-                const log = JSON.parse(e.data);
-                // G4/S2: EOF signal from Rust worker — simulation complete
-                if (log.type === 'EOF') {
-                    cleanupSimulation();
-                    addNotification("Reflection Completa", "Pipeline de raciocínio finalizado com sucesso.");
-                    return;
-                }
-                liveStreamLogs = [log, ...liveStreamLogs].slice(0, 50); // Keep last 50
-            } catch(err) {
-                console.error("SSE parse erro:", err);
-            }
-        };
+		isReflecting = true;
+		liveStreamLogs = [];
+		addNotification('Reflection SSE', 'Iniciando Server-Sent Events...');
 
-        // S2: Handle SSE errors (network drop, server restart)
-        eventSource.onerror = () => {
-            cleanupSimulation();
-            addNotification("SSE Desconectado", "Conexão com o servidor perdida. Simulação encerrada.");
-        };
+		if (eventSource) eventSource.close();
+		eventSource = new EventSource(`${API_BASE_URL}/v1/engineer/reflection/stream`);
 
-        // Trigger Rust Backend worker
-        try {
-            const res = await fetch(`${API_BASE_URL}/v1/engineer/reflection/simulate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ model_name: targetModel })
-            });
-            
-            if (!res.ok) {
-                cleanupSimulation();
-                const data = await res.json().catch(() => null);
-                addNotification("Falha Externa", data?.message || "Falha no worker Rust");
-            }
-        } catch(err) {
-            cleanupSimulation();
-            addNotification("Erro de Rede", "Erro P2P / Rede");
-        }
-    }
+		eventSource.onmessage = (e) => {
+			if (e.data === 'keep-alive') return;
+			try {
+				const log = JSON.parse(e.data);
+				// G4/S2: EOF signal from Rust worker — simulation complete
+				if (log.type === 'EOF') {
+					cleanupSimulation();
+					addNotification('Reflection Completa', 'Pipeline de raciocínio finalizado com sucesso.');
+					return;
+				}
+				liveStreamLogs = [log, ...liveStreamLogs].slice(0, 50); // Keep last 50
+			} catch (err) {
+				console.error('SSE parse erro:', err);
+			}
+		};
+
+		// S2: Handle SSE errors (network drop, server restart)
+		eventSource.onerror = () => {
+			cleanupSimulation();
+			addNotification('SSE Desconectado', 'Conexão com o servidor perdida. Simulação encerrada.');
+		};
+
+		// Trigger Rust Backend worker
+		try {
+			const res = await fetch(`${API_BASE_URL}/v1/engineer/reflection/simulate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ model_name: targetModel })
+			});
+
+			if (!res.ok) {
+				cleanupSimulation();
+				const data = await res.json().catch(() => null);
+				addNotification('Falha Externa', data?.message || 'Falha no worker Rust');
+			}
+		} catch (err) {
+			cleanupSimulation();
+			addNotification('Erro de Rede', 'Erro P2P / Rede');
+		}
+	}
 </script>
 
 <div class="p-8 h-full flex flex-col">
+	<!-- Main Canvas -->
+	<div class="w-full space-y-10 flex-1">
+		<!-- Header & Breadcrumbs -->
+		<div class="flex justify-between items-end">
+			<div>
+				<nav
+					class="flex text-[11px] uppercase tracking-widest font-bold text-on-surface-variant mb-4 gap-2"
+				>
+					<span>Model Trainer</span>
+					<span>/</span>
+					<span class="text-primary font-extrabold">Reflection Lab</span>
+				</nav>
+				<h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2">Reflection Lab</h2>
+				<p class="text-on-surface-variant max-w-2xl text-sm font-medium">
+					Optimize Chain of Thought (CoT) pathways and self-correction mechanisms. Evaluate how the
+					model audits its own reasoning steps before final synthesis.
+				</p>
+			</div>
+			<div class="flex gap-3 items-center">
+				<!-- S8: Visual indicator of is_reasoner capability -->
+				<select
+					bind:value={targetModel}
+					class="bg-surface-container-highest border border-outline-variant/30 text-on-surface text-xs font-bold rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary/50 outline-none"
+				>
+					{#each modelMatrix as m}
+						<option value={m.model_name}>{m.model_name}{m.is_reasoner ? ' 🧠' : ' ⚠️'}</option>
+					{/each}
+					{#if modelMatrix.length === 0}
+						<option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
+					{/if}
+				</select>
+				<button
+					onclick={() => exportReflectionLogs(liveStreamLogs)}
+					class="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors"
+				>
+					Export Logs
+				</button>
+				<button
+					onclick={launchSimulation}
+					disabled={isReflecting}
+					class="px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#001360] to-[#002395] text-white font-bold text-xs shadow-md shadow-primary/20 active:scale-95 transition-transform flex items-center gap-2 disabled:opacity-50"
+				>
+					<span class="material-symbols-outlined text-[18px]">science</span>
+					{isReflecting ? 'Simulating...' : 'Launch Simulation'}
+				</button>
+			</div>
+		</div>
 
-    <!-- Main Canvas -->
-    <div class="w-full space-y-10 flex-1">
-        <!-- Header & Breadcrumbs -->
-        <div class="flex justify-between items-end">
-            <div>
-                <nav class="flex text-[11px] uppercase tracking-widest font-bold text-on-surface-variant mb-4 gap-2">
-                    <span>Model Trainer</span>
-                    <span>/</span>
-                    <span class="text-primary font-extrabold">Reflection Lab</span>
-                </nav>
-                <h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 ">Reflection Lab</h2>
-                <p class="text-on-surface-variant max-w-2xl text-sm font-medium">
-                    Optimize Chain of Thought (CoT) pathways and self-correction mechanisms.
-                    Evaluate how the model audits its own reasoning steps before final synthesis.
-                </p>
-            </div>
-            <div class="flex gap-3 items-center">
-                <!-- S8: Visual indicator of is_reasoner capability -->
-                <select bind:value={targetModel} class="bg-surface-container-highest border border-outline-variant/30 text-on-surface text-xs font-bold rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary/50 outline-none">
-                    {#each modelMatrix as m}
-                        <option value={m.model_name}>{m.model_name}{m.is_reasoner ? ' 🧠' : ' ⚠️'}</option>
-                    {/each}
-                    {#if modelMatrix.length === 0}
-                        <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
-                    {/if}
-                </select>
-                <button onclick={() => exportReflectionLogs(liveStreamLogs)} class="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors">
-                    Export Logs
-                </button>
-                <button onclick={launchSimulation} disabled={isReflecting} class="px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#001360] to-[#002395] text-white font-bold text-xs shadow-md shadow-primary/20 active:scale-95 transition-transform flex items-center gap-2 disabled:opacity-50">
-                    <span class="material-symbols-outlined text-[18px]">science</span>
-                    {isReflecting ? 'Simulating...' : 'Launch Simulation'}
-                </button>
-            </div>
-        </div>
+		<!-- Bento Grid Layout -->
+		<div class="grid grid-cols-12 gap-6 pb-12">
+			<!-- Reflection AI & Tuning Panel -->
+			<div class="col-span-12 xl:col-span-4 flex flex-col gap-6">
+				<!-- Tuning Controls -->
+				<div
+					class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-outline-variant/10"
+				>
+					<div class="flex items-center justify-between mb-8">
+						<h3 class="text-lg font-bold flex items-center gap-2">
+							<span
+								class="material-symbols-outlined text-primary text-[24px]"
+								style="font-variation-settings: 'FILL' 1;">tune</span
+							>
+							Reflection Controls
+						</h3>
+						<span
+							class="px-2 py-1 bg-tertiary-container/10 text-on-tertiary-container text-[10px] font-extrabold uppercase tracking-widest rounded-md border border-tertiary-container/20"
+							>System Active</span
+						>
+					</div>
 
-        <!-- Bento Grid Layout -->
-        <div class="grid grid-cols-12 gap-6 pb-12">
-            
-            <!-- Reflection AI & Tuning Panel -->
-            <div class="col-span-12 xl:col-span-4 flex flex-col gap-6">
-                <!-- Tuning Controls -->
-                <div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-outline-variant/10">
-                    <div class="flex items-center justify-between mb-8">
-                        <h3 class="text-lg font-bold flex items-center gap-2 ">
-                            <span class="material-symbols-outlined text-primary text-[24px]" style="font-variation-settings: 'FILL' 1;">tune</span>
-                            Reflection Controls
-                        </h3>
-                        <span class="px-2 py-1 bg-tertiary-container/10 text-on-tertiary-container text-[10px] font-extrabold uppercase tracking-widest rounded-md border border-tertiary-container/20">System Active</span>
-                    </div>
-                    
-                    <div class="space-y-8">
-                        <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
-                            <div>
-                                <p class="text-xs font-bold text-on-surface">Think-Before-Response</p>
-                                <p class="text-[10px] text-on-surface-variant mt-0.5">Force 500ms latent reasoning loop</p>
-                            </div>
-                            <button aria-label="Toggle Think Before Response" onclick={() => { trainerState.internalMonologue = !trainerState.internalMonologue; persistSettings(); }} class="w-12 h-6 {trainerState.internalMonologue ? 'bg-primary ring-4 ring-primary-fixed/50' : 'bg-surface-variant'} rounded-full relative transition-colors cursor-pointer outline-none">
-                                <span class="absolute {trainerState.internalMonologue ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all"></span>
-                            </button>
-                        </div>
-                        
-                        <!-- O4: Added min/max/step constraints -->
-                        <div class="space-y-4 px-1">
-                            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                <span>Reasoning Depth</span>
-                                <span class="text-primary font-mono bg-primary-fixed/30 px-2 py-0.5 rounded">Level {Math.floor(trainerState.reasoningDepth / 10)}</span>
-                            </div>
-                            <input class="w-full h-1.5 bg-surface-variant rounded-full appearance-none accent-primary cursor-pointer hover:accent-primary-container transition-colors" type="range" min="0" max="100" step="1" bind:value={trainerState.reasoningDepth} onchange={persistSettings} />
-                        </div>
-                        
-                        <div class="space-y-4 px-1">
-                            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                <span>Audit Intensity</span>
-                                <span class="text-primary font-mono bg-primary-fixed/30 px-2 py-0.5 rounded">High ({(trainerState.auditIntensity / 100).toFixed(2)})</span>
-                            </div>
-                            <input class="w-full h-1.5 bg-surface-variant rounded-full appearance-none accent-primary cursor-pointer hover:accent-primary-container transition-colors" type="range" min="0" max="100" step="1" bind:value={trainerState.auditIntensity} onchange={persistSettings} />
-                        </div>
-                    </div>
-                </div>
+					<div class="space-y-8">
+						<div
+							class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/10"
+						>
+							<div>
+								<p class="text-xs font-bold text-on-surface">Think-Before-Response</p>
+								<p class="text-[10px] text-on-surface-variant mt-0.5">
+									Force 500ms latent reasoning loop
+								</p>
+							</div>
+							<button
+								aria-label="Toggle Think Before Response"
+								onclick={() => {
+									trainerState.internalMonologue = !trainerState.internalMonologue;
+									persistSettings();
+								}}
+								class="w-12 h-6 {trainerState.internalMonologue
+									? 'bg-primary ring-4 ring-primary-fixed/50'
+									: 'bg-surface-variant'} rounded-full relative transition-colors cursor-pointer outline-none"
+							>
+								<span
+									class="absolute {trainerState.internalMonologue
+										? 'right-1'
+										: 'left-1'} top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all"
+								></span>
+							</button>
+						</div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Reasoning Chain</p>
-                        <p class="text-2xl font-extrabold text-primary ">Stable</p>
-                        <div class="mt-4 flex items-center gap-1.5 text-[10px] text-on-tertiary-container font-extrabold uppercase tracking-tight">
-                            <span class="material-symbols-outlined text-[16px]">trending_up</span>
-                            <span>+4.2% Consist.</span>
-                        </div>
-                    </div>
-                    <div class="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden">
-                        <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-primary/5 rounded-full blur-xl"></div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Self-Correct</p>
-                        <p class="text-2xl font-extrabold text-primary pr-2">{getSelfCorrectRatio()}%</p>
-                        <div class="mt-4 flex items-center gap-1.5 text-[10px] text-on-tertiary-container font-extrabold uppercase tracking-tight">
-                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                            <span>Optimal Rate</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+						<!-- O4: Added min/max/step constraints -->
+						<div class="space-y-4 px-1">
+							<div
+								class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant"
+							>
+								<span>Reasoning Depth</span>
+								<span class="text-primary font-mono bg-primary-fixed/30 px-2 py-0.5 rounded"
+									>Level {Math.floor(trainerState.reasoningDepth / 10)}</span
+								>
+							</div>
+							<input
+								class="w-full h-1.5 bg-surface-variant rounded-full appearance-none accent-primary cursor-pointer hover:accent-primary-container transition-colors"
+								type="range"
+								min="0"
+								max="100"
+								step="1"
+								bind:value={trainerState.reasoningDepth}
+								onchange={persistSettings}
+							/>
+						</div>
 
-            <!-- Main Workspace: Reasoning Chain Analysis -->
-            <div class="col-span-12 xl:col-span-8 flex flex-col gap-6">
-                <!-- Dataset Editor / JSON Preview -->
-                <div class="bg-[#1a1c1d] text-inverse-on-surface rounded-3xl overflow-hidden flex flex-col border border-outline-variant/20 shadow-lg shadow-black/10 flex-1 min-h-[400px]">
-                    
-                    <div class="flex items-center justify-between px-6 py-4 bg-[#232527] border-b border-[#35383a]">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-primary-fixed-dim text-[20px]">data_object</span>
-                            <h3 class="font-bold text-sm text-slate-200">Reflection Dataset Editor — <span class="text-primary-fixed-dim font-mono text-[13px]">Sample_Reasoning_Step.json</span></h3>
-                        </div>
-                        <div class="flex gap-2">
-                            <div class="w-3 h-3 rounded-full bg-error/80 border border-error shadow-inner"></div>
-                            <div class="w-3 h-3 rounded-full bg-[#e8c33c] border border-[#d6af20] shadow-inner"></div>
-                            <div class="w-3 h-3 rounded-full bg-primary-fixed border border-primary-fixed shadow-inner"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex-1 overflow-hidden p-6 font-mono text-[13px] leading-loose custom-scrollbar flex">
-<textarea bind:value={reflectionDatasetJson} class="w-full h-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none text-[#a9b1d6] font-mono leading-relaxed" spellcheck="false"></textarea>
-                    </div>
-                    
-                    <div class="px-6 py-4 bg-[#232527] border-t border-[#35383a] flex justify-between items-center text-[10px] text-outline-variant font-mono">
-                        <span class={validationStatus.valid === false ? 'text-error font-bold' : validationStatus.valid === true ? 'text-primary' : ''}>{validationStatus.msg}</span>
-                        <div class="flex gap-6 font-sans">
-                            <button onclick={validateDataset} class="hover:text-white transition-colors uppercase font-bold tracking-widest text-[#94A3B8] flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px]">fact_check</span>
-                                Validate Schema
-                            </button>
-                            <button onclick={applyToTraining} class="text-primary-fixed-dim hover:text-white transition-colors uppercase font-bold tracking-widest flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px]">publish</span>
-                                Apply to Training
-                            </button>
-                        </div>
-                    </div>
-                </div>
+						<div class="space-y-4 px-1">
+							<div
+								class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant"
+							>
+								<span>Audit Intensity</span>
+								<span class="text-primary font-mono bg-primary-fixed/30 px-2 py-0.5 rounded"
+									>High ({(trainerState.auditIntensity / 100).toFixed(2)})</span
+								>
+							</div>
+							<input
+								class="w-full h-1.5 bg-surface-variant rounded-full appearance-none accent-primary cursor-pointer hover:accent-primary-container transition-colors"
+								type="range"
+								min="0"
+								max="100"
+								step="1"
+								bind:value={trainerState.auditIntensity}
+								onchange={persistSettings}
+							/>
+						</div>
+					</div>
+				</div>
 
-                <!-- Recent Reflection Logs -->
-                <div class="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10">
-                    <div class="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center">
-                        <h3 class="font-bold text-sm text-on-surface ">Live Reflection Stream</h3>
-                        <div class="w-16 h-1 bg-surface-variant rounded-full overflow-hidden">
-                            <div class="w-1/3 h-full bg-primary animate-pulse rounded-full mx-auto"></div>
-                        </div>
-                    </div>
-                    <div class="divide-y divide-outline-variant/5">
-                        {#each liveStreamLogs as log}
-                        <div class="p-5 flex items-start gap-4 hover:bg-surface-container-low transition-colors group cursor-pointer animate-in fade-in slide-in-from-top-4 duration-500">
-                            <div class="w-10 h-10 rounded-xl {log.color} flex items-center justify-center shrink-0 group-hover:bg-opacity-80 transition-colors">
-                                <span class="material-symbols-outlined text-[20px]">{log.icon}</span>
-                            </div>
-                            <div class="flex-1 mt-0.5">
-                                <div class="flex justify-between mb-1.5">
-                                    <span class="text-xs font-bold text-on-surface">{log.title}</span>
-                                    <span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{log.time}</span>
-                                </div>
-                                <p class="text-[12px] text-on-surface-variant leading-relaxed">{log.desc}</p>
-                            </div>
-                        </div>
-                        {/each}
-                        {#if liveStreamLogs.length === 0}
-                            <div class="flex justify-center flex-col items-center py-10 opacity-50">
-                                <span class="material-symbols-outlined text-[42px] mb-2 text-on-surface-variant">hourglass_empty</span>
-                                <p class="text-xs text-on-surface-variant uppercase tracking-widest font-bold">Waiting for simulation triggers...</p>
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+				<!-- Stats Cards -->
+				<div class="grid grid-cols-2 gap-4">
+					<div
+						class="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm"
+					>
+						<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+							Reasoning Chain
+						</p>
+						<p class="text-2xl font-extrabold text-primary">Stable</p>
+						<div
+							class="mt-4 flex items-center gap-1.5 text-[10px] text-on-tertiary-container font-extrabold uppercase tracking-tight"
+						>
+							<span class="material-symbols-outlined text-[16px]">trending_up</span>
+							<span>+4.2% Consist.</span>
+						</div>
+					</div>
+					<div
+						class="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden"
+					>
+						<div
+							class="absolute -right-4 -bottom-4 w-16 h-16 bg-primary/5 rounded-full blur-xl"
+						></div>
+						<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+							Self-Correct
+						</p>
+						<p class="text-2xl font-extrabold text-primary pr-2">{getSelfCorrectRatio()}%</p>
+						<div
+							class="mt-4 flex items-center gap-1.5 text-[10px] text-on-tertiary-container font-extrabold uppercase tracking-tight"
+						>
+							<span class="material-symbols-outlined text-[16px]">check_circle</span>
+							<span>Optimal Rate</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Workspace: Reasoning Chain Analysis -->
+			<div class="col-span-12 xl:col-span-8 flex flex-col gap-6">
+				<!-- Dataset Editor / JSON Preview -->
+				<div
+					class="bg-[#1a1c1d] text-inverse-on-surface rounded-3xl overflow-hidden flex flex-col border border-outline-variant/20 shadow-lg shadow-black/10 flex-1 min-h-[400px]"
+				>
+					<div
+						class="flex items-center justify-between px-6 py-4 bg-[#232527] border-b border-[#35383a]"
+					>
+						<div class="flex items-center gap-3">
+							<span class="material-symbols-outlined text-primary-fixed-dim text-[20px]"
+								>data_object</span
+							>
+							<h3 class="font-bold text-sm text-slate-200">
+								Reflection Dataset Editor — <span
+									class="text-primary-fixed-dim font-mono text-[13px]"
+									>Sample_Reasoning_Step.json</span
+								>
+							</h3>
+						</div>
+						<div class="flex gap-2">
+							<div class="w-3 h-3 rounded-full bg-error/80 border border-error shadow-inner"></div>
+							<div
+								class="w-3 h-3 rounded-full bg-[#e8c33c] border border-[#d6af20] shadow-inner"
+							></div>
+							<div
+								class="w-3 h-3 rounded-full bg-primary-fixed border border-primary-fixed shadow-inner"
+							></div>
+						</div>
+					</div>
+
+					<div
+						class="flex-1 overflow-hidden p-6 font-mono text-[13px] leading-loose custom-scrollbar flex"
+					>
+						<textarea
+							bind:value={reflectionDatasetJson}
+							class="w-full h-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none text-[#a9b1d6] font-mono leading-relaxed"
+							spellcheck="false"
+						></textarea>
+					</div>
+
+					<div
+						class="px-6 py-4 bg-[#232527] border-t border-[#35383a] flex justify-between items-center text-[10px] text-outline-variant font-mono"
+					>
+						<span
+							class={validationStatus.valid === false
+								? 'text-error font-bold'
+								: validationStatus.valid === true
+									? 'text-primary'
+									: ''}>{validationStatus.msg}</span
+						>
+						<div class="flex gap-6 font-sans">
+							<button
+								onclick={validateDataset}
+								class="hover:text-white transition-colors uppercase font-bold tracking-widest text-[#94A3B8] flex items-center gap-2"
+							>
+								<span class="material-symbols-outlined text-[16px]">fact_check</span>
+								Validate Schema
+							</button>
+							<button
+								onclick={applyToTraining}
+								class="text-primary-fixed-dim hover:text-white transition-colors uppercase font-bold tracking-widest flex items-center gap-2"
+							>
+								<span class="material-symbols-outlined text-[16px]">publish</span>
+								Apply to Training
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Recent Reflection Logs -->
+				<div
+					class="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10"
+				>
+					<div
+						class="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center"
+					>
+						<h3 class="font-bold text-sm text-on-surface">Live Reflection Stream</h3>
+						<div class="w-16 h-1 bg-surface-variant rounded-full overflow-hidden">
+							<div class="w-1/3 h-full bg-primary animate-pulse rounded-full mx-auto"></div>
+						</div>
+					</div>
+					<div class="divide-y divide-outline-variant/5">
+						{#each liveStreamLogs as log}
+							<div
+								class="p-5 flex items-start gap-4 hover:bg-surface-container-low transition-colors group cursor-pointer animate-in fade-in slide-in-from-top-4 duration-500"
+							>
+								<div
+									class="w-10 h-10 rounded-xl {log.color} flex items-center justify-center shrink-0 group-hover:bg-opacity-80 transition-colors"
+								>
+									<span class="material-symbols-outlined text-[20px]">{log.icon}</span>
+								</div>
+								<div class="flex-1 mt-0.5">
+									<div class="flex justify-between mb-1.5">
+										<span class="text-xs font-bold text-on-surface">{log.title}</span>
+										<span
+											class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest"
+											>{log.time}</span
+										>
+									</div>
+									<p class="text-[12px] text-on-surface-variant leading-relaxed">{log.desc}</p>
+								</div>
+							</div>
+						{/each}
+						{#if liveStreamLogs.length === 0}
+							<div class="flex justify-center flex-col items-center py-10 opacity-50">
+								<span class="material-symbols-outlined text-[42px] mb-2 text-on-surface-variant"
+									>hourglass_empty</span
+								>
+								<p class="text-xs text-on-surface-variant uppercase tracking-widest font-bold">
+									Waiting for simulation triggers...
+								</p>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
-    
-    input[type=range] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        background: transparent;
-    }
-    input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        height: 18px;
-        width: 18px;
-        border-radius: 50%;
-        background: var(--color-primary);
-        cursor: pointer;
-        margin-top: -6px;
-        box-shadow: 0 0 10px rgba(0, 19, 96, 0.3);
-    }
-    input[type=range]::-webkit-slider-thumb:hover {
-        background: var(--color-primary-container);
-        transform: scale(1.1);
-    }
-    input[type=range]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 6px;
-        cursor: pointer;
-        background: var(--color-surface-variant);
-        border-radius: 3px;
-    }
-    input[type=range]::-moz-range-track {
-        width: 100%;
-        height: 6px;
-        cursor: pointer;
-        background: var(--color-surface-variant);
-        border-radius: 3px;
-    }
+	.material-symbols-outlined {
+		font-variation-settings:
+			'FILL' 0,
+			'wght' 400,
+			'GRAD' 0,
+			'opsz' 24;
+	}
+
+	input[type='range'] {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		background: transparent;
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: 18px;
+		width: 18px;
+		border-radius: 50%;
+		background: var(--color-primary);
+		cursor: pointer;
+		margin-top: -6px;
+		box-shadow: 0 0 10px rgba(0, 19, 96, 0.3);
+	}
+	input[type='range']::-webkit-slider-thumb:hover {
+		background: var(--color-primary-container);
+		transform: scale(1.1);
+	}
+	input[type='range']::-webkit-slider-runnable-track {
+		width: 100%;
+		height: 6px;
+		cursor: pointer;
+		background: var(--color-surface-variant);
+		border-radius: 3px;
+	}
+	input[type='range']::-moz-range-track {
+		width: 100%;
+		height: 6px;
+		cursor: pointer;
+		background: var(--color-surface-variant);
+		border-radius: 3px;
+	}
 </style>

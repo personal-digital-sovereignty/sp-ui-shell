@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '$lib/env_config';
+import { API_BASE_URL } from '@sp/ui-core/config';
 export const settingsState = $state({
     isOpen: false,
     provider: 'Ollama (Local)',
@@ -72,7 +72,7 @@ export async function saveSettings() {
             aiName: settingsState.aiName,
             guardrails: settingsState.guardrails
         };
-        
+
         const res = await fetch(`${API_BASE_URL}/v1/settings`, {
             method: 'POST',
             headers: {

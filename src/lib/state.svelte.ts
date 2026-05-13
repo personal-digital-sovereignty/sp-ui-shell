@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '$lib/env_config';
+import { API_BASE_URL } from '@sp/ui-core/config';
 /**
  * 🌐 **Global State | Svelte 5 Reactive Engine**
  * 
@@ -28,7 +28,7 @@ export const globalState = $state({
         activeDocumentContent: null as string | null,
         workspaceFiles: [] as any[]
     },
-    
+
     // Chat History State (Global Execution Context)
     chat: {
         activeSessionId: null as number | null,
@@ -115,19 +115,19 @@ export const loadGlobalSession = async (id: number | null) => {
                 }));
             }
         }
-    } catch(e) { console.error('Error loading session globally', e); }
+    } catch (e) { console.error('Error loading session globally', e); }
 };
 
 export const sendGlobalChatMessage = async (userText: string) => {
     if (!userText.trim() || globalState.chat.isTyping) return;
-    
+
     // 1. Injeta Pergunta na UI
     globalState.chat.messages = [
         ...globalState.chat.messages,
         { id: Date.now(), role: 'user', agent: 'Commander', text: userText, time: new Date().toLocaleTimeString() }
     ];
     globalState.chat.isTyping = true;
-    
+
     const newMsgId = Date.now() + 1;
     globalState.chat.messages = [
         ...globalState.chat.messages,
@@ -202,11 +202,11 @@ export const sendGlobalChatMessage = async (userText: string) => {
             for (const line of lines) {
                 if (line.trim() === '') continue;
                 if (line.includes('[DONE]')) break;
-                
+
                 if (line.startsWith('data: ')) {
                     try {
                         const data = JSON.parse(line.substring(6));
-                        
+
                         if (data.id && data.id.startsWith('session_')) {
                             const sid = parseInt(data.id.split('_')[1], 10);
                             if (!isNaN(sid) && sid > 0) globalState.chat.activeSessionId = sid;
@@ -217,11 +217,11 @@ export const sendGlobalChatMessage = async (userText: string) => {
                             // Force proxy trigger violently
                             globalState.chat.messages[assistantIdx] = { ...globalState.chat.messages[assistantIdx] };
                         }
-                    } catch(e) { }
+                    } catch (e) { }
                 }
             }
         }
-        
+
         // FIX-MacOS: Guard contra resposta invisível — se o stream acabou mas não produziu conteúdo,
         // o modelo provavelmente não foi encontrado (404) ou retornou erro silencioso.
         if (globalState.chat.messages[assistantIdx] && !globalState.chat.messages[assistantIdx].text.trim()) {

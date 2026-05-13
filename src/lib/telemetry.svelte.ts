@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '$lib/env_config';
+import { API_BASE_URL } from '@sp/ui-core/config';
 /**
  * 📊 **Telemetry State | Hardware & Model Monitoring**
  * 
@@ -90,7 +90,7 @@ export function connectTelemetry() {
             const res = await fetch(`${API_BASE_URL}/v1/analytics/telemetry`);
             if (res.ok) {
                 const data = await res.json();
-                
+
                 telemetryState.connected = true;
                 telemetryState.tokensPerSecond = data.avg_tps || 0;
                 telemetryState.avgLatencyMs = data.avg_latency_ms || 0;
@@ -109,7 +109,7 @@ export function connectTelemetry() {
                 telemetryState.unifiedMemory = data.hardware?.unified_memory || false;
                 telemetryState.ioRxBytes = data.hardware?.io_rx || 0;
                 telemetryState.ioTxBytes = data.hardware?.io_tx || 0;
-                
+
                 // Set active model status based on loaded models
                 if (data.active_models && data.active_models > 0) {
                     telemetryState.activeModel = 'Native Cibrid API Protocol';

@@ -1,8 +1,8 @@
-import { API_BASE_URL } from '$lib/env_config';
+import { API_BASE_URL } from '@sp/ui-core/config';
 export type Task = { id: string, title: string, description?: string, status: string, priority?: string, deadline?: string, created_at?: string };
-export type Project = { 
-    id: string, 
-    name: string, 
+export type Project = {
+    id: string,
+    name: string,
     tasks: Task[],
     purpose?: string,
     traction_status?: string,
@@ -31,17 +31,17 @@ export async function fetchProjects() {
     projectState.isLoading = true;
     try {
         const token = localStorage.getItem('sovereign_token') || '';
-        const res = await fetch(`${API_BASE_URL}/v1/projects`, { headers: { 'Authorization': `Bearer ${token}` }});
+        const res = await fetch(`${API_BASE_URL}/v1/projects`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (res.ok) {
             const data = await res.json();
             if (data && Array.isArray(data)) {
                 // Initialize tasks immediately to prevent Svelte template crashes
                 let readyProjects = data.map((p: any) => ({ ...p, tasks: p.tasks || [] }));
                 projectState.projects = readyProjects;
-                
+
                 // Lazily fetch tasks for each project
                 for (let proj of readyProjects) {
-                    fetch(`${API_BASE_URL}/v1/projects/${proj.id}/tasks`, { headers: { 'Authorization': `Bearer ${token}` }})
+                    fetch(`${API_BASE_URL}/v1/projects/${proj.id}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } })
                         .then(r => r.json())
                         .then(tasks => {
                             if (Array.isArray(tasks)) {
@@ -104,7 +104,7 @@ export function updateProjectTasks(projectId: string, colStatus: string, newTask
     const projIndex = projectState.projects.findIndex(p => p.id === projectId);
     if (projIndex > -1) {
         let proj = projectState.projects[projIndex];
-        
+
         // Map newTasks to ensure they officially carry the column status
         let updatedNewTasks = newTasks.map(t => {
             const { isDndShadowItem, ...rest } = t as any;
@@ -168,7 +168,7 @@ export async function updateTaskAPI(taskId: string, payload: Partial<Task>) {
 export async function fetchProjectDocuments(projectId: string) {
     const token = localStorage.getItem('sovereign_token') || '';
     try {
-        const res = await fetch(`${API_BASE_URL}/v1/projects/${projectId}/documents`, { headers: { 'Authorization': `Bearer ${token}` }});
+        const res = await fetch(`${API_BASE_URL}/v1/projects/${projectId}/documents`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (res.ok) return await res.json();
     } catch (e) { console.error("Failed to fetch linked docs", e); }
     return [];
