@@ -73,7 +73,6 @@
 	});
 
 	function handleNodeClick(node: any) {
-		console.log('Navigating to Node:', node);
 		if (node.type === 'file' && node.path) {
 			globalState.vault.activeDocumentId = node.path;
 			window.location.href = '/vault';
