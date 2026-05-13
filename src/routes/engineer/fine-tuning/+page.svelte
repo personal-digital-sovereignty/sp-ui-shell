@@ -11,7 +11,7 @@
 		sendUnslothControl,
 		AI_MODELS,
 		populateTrainerModels
-	} from '$lib/trainer.svelte';
+	} from '@sp/ui-core/trainer';
 
 	let targetModel = $derived(
 		AI_MODELS.find((m) => m.type === 'local')?.id || 'Sovereign-Base-Model'

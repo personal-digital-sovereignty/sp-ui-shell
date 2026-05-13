@@ -13,7 +13,7 @@
 		nvidiaState,
 		loadNvidiaSettings,
 		saveNvidiaSettings
-	} from '$lib/settings.svelte';
+	} from '@sp/ui-core/settings';
 	import {
 		Settings,
 		ChevronDown,

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { trainerState, exportReflectionLogs, getSelfCorrectRatio } from '$lib/trainer.svelte';
+	import { trainerState, exportReflectionLogs, getSelfCorrectRatio } from '@sp/ui-core/trainer';
 	import { API_BASE_URL } from '@sp/ui-core/config';
-	import { addNotification } from '$lib/state.svelte';
+	import { addNotification } from '@sp/ui-core/state';
 
 	let isReflecting = $state(false);
 	let eventSource: EventSource | null = null;

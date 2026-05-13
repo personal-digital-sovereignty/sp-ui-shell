@@ -3,7 +3,7 @@
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { Terminal, Download, Play, Pause, Trash2, Clock, Bug, Zap } from 'lucide-svelte';
 
-	import { telemetryState } from '$lib/telemetry.svelte';
+	import { telemetryState } from '@sp/ui-core/telemetry';
 
 	interface LogEntry {
 		timestamp: string;

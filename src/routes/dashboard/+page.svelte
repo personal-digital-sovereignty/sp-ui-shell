@@ -21,9 +21,9 @@
 		Layers,
 		BookOpen
 	} from 'lucide-svelte';
-	import { globalState } from '$lib/state.svelte';
-	import { projectState, fetchProjects } from '$lib/projects.svelte';
-	import { telemetryState, connectTelemetry, disconnectTelemetry } from '$lib/telemetry.svelte';
+	import { globalState } from '@sp/ui-core/state';
+	import { projectState, fetchProjects } from '@sp/ui-core/projects';
+	import { telemetryState, connectTelemetry, disconnectTelemetry } from '@sp/ui-core/telemetry';
 	import { onMount } from 'svelte';
 
 	import { onDestroy } from 'svelte';

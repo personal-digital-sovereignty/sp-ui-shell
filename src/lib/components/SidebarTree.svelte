@@ -2,7 +2,7 @@
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { FileText, Database, Folder, FolderOpen } from 'lucide-svelte';
-	import { globalState } from '$lib/state.svelte.js';
+	import { globalState } from '@sp/ui-core/state';
 	import { untrack } from 'svelte';
 
 	async function fetchVaultFiles() {

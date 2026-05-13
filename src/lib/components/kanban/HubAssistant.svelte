@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
-	import { projectState } from '$lib/projects.svelte';
+	import { projectState } from '@sp/ui-core/projects';
 	import {
 		MessageSquare,
 		Send,
@@ -230,7 +230,7 @@
 					<span
 						class="text-xs flex items-center gap-1.5 font-medium dark:text-slate-400 transition-colors"
 						><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-						 Online</span
+						Online</span
 					>
 				</div>
 				<button

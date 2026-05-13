@@ -8,7 +8,7 @@
 		sendUnslothControl,
 		AI_MODELS,
 		populateTrainerModels
-	} from '$lib/trainer.svelte';
+	} from '@sp/ui-core/trainer';
 
 	let logs = $state<string[]>([]);
 	let eventSource: EventSource;

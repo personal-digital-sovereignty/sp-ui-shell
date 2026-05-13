@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import CognitiveGraph from '$lib/components/CognitiveGraph.svelte';
 	import { Search, Play, Minus, Plus, Cpu, Activity, Network, Database } from 'lucide-svelte';
-	import { globalState } from '$lib/state.svelte';
+	import { globalState } from '@sp/ui-core/state';
 
 	let nodes = $state([]);
 	let links = $state([]);

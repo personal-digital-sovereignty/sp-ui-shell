@@ -8,8 +8,8 @@
 		linkProjectDocument,
 		unlinkProjectDocument,
 		type Project
-	} from '$lib/projects.svelte';
-	import { globalState } from '$lib/state.svelte';
+	} from '@sp/ui-core/projects';
+	import { globalState } from '@sp/ui-core/state';
 
 	let { project }: { project: Project } = $props();
 

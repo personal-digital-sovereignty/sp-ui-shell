@@ -13,7 +13,7 @@
 	import { Markdown } from 'tiptap-markdown';
 	import Image from '@tiptap/extension-image';
 	import yaml from 'js-yaml';
-	import { globalState } from '$lib/state.svelte.js';
+	import { globalState } from '@sp/ui-core/state';
 
 	import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 	import { Decoration, DecorationSet } from '@tiptap/pm/view';

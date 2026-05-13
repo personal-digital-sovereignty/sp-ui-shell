@@ -2,8 +2,8 @@
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import '../app.css';
-	import { globalState } from '$lib/state.svelte.js';
-	import { telemetryState, connectTelemetry, disconnectTelemetry } from '$lib/telemetry.svelte';
+	import { globalState } from '@sp/ui-core/state';
+	import { telemetryState, connectTelemetry, disconnectTelemetry } from '@sp/ui-core/telemetry';
 	import {
 		Home,
 		MessageCircle,
@@ -26,7 +26,7 @@
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import ManualModal from '$lib/components/ManualModal.svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
-	import { settingsState, loadSettings } from '$lib/settings.svelte';
+	import { settingsState, loadSettings } from '@sp/ui-core/settings';
 
 	// Versão injetada pelo Vite em build-time via package.json (vite.config.ts → define)
 	// @ts-ignore — __APP_VERSION__ é definido em vite.config.ts via `define`

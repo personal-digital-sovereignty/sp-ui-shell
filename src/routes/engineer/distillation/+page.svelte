@@ -8,7 +8,7 @@
 		exportDistillationLogs,
 		getSimilarityScoreBaseline,
 		populateTrainerModels
-	} from '$lib/trainer.svelte';
+	} from '@sp/ui-core/trainer';
 
 	let isSubmitting = $state(false);
 
@@ -442,10 +442,10 @@
 							<span class="flex items-center gap-2">
 								{#if isSubmitting}
 									<div class="w-2 h-2 rounded-full bg-primary/20 animate-pulse"></div>
-									 Async Watchdog Active
+									Async Watchdog Active
 								{:else}
 									<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
-									 Watchdog Idle
+									Watchdog Idle
 								{/if}
 							</span>
 						</div>
