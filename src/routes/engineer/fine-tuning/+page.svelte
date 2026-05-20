@@ -194,217 +194,73 @@
 						</div>
 					</div>
 				</section>
-
-				{#if false}
-					<!-- Unsloth Monitor Mini Section (v1.3.0 MOCK HIDDEN) -->
-					<section
-						class="bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/10 shadow-sm"
-					>
-						<div class="flex justify-between items-center mb-8">
-							<div class="flex items-center gap-4">
-								<div
-									class="w-10 h-10 rounded-xl bg-tertiary-fixed-dim flex items-center justify-center"
-								>
-									<span class="material-symbols-outlined text-tertiary text-[20px]">terminal</span>
-								</div>
-								<h2 class="text-xl font-bold text-on-surface">
-									Unsloth Monitor <span class="text-on-surface-variant font-medium text-sm ml-2"
-										>3B/8B Optimizations</span
-									>
-								</h2>
-							</div>
-							<div class="flex gap-2 bg-surface-container-low p-1 rounded-lg">
-								<button
-									class="px-3 py-1 bg-surface-container-lowest shadow-sm rounded-md text-[10px] font-bold text-on-surface"
-									>Local</button
-								>
-								<button class="px-3 py-1 text-on-surface-variant rounded-md text-[10px] font-bold"
-									>Remote</button
-								>
-							</div>
-						</div>
-
-						<div class="grid grid-cols-2 gap-8 mb-8">
-							<div class="space-y-4">
-								<div class="flex justify-between items-end">
-									<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-										VRAM Usage
-									</p>
-									<p class="text-lg font-bold font-mono text-on-surface">
-										{trainerState.vramUsageGb.toFixed(1)} GB
-										<span class="text-xs font-medium text-on-surface-variant"
-											>/ {trainerState.vramTotalGb} GB</span
-										>
-									</p>
-								</div>
-								<div class="h-10 w-full bg-surface-container-high rounded-lg overflow-hidden p-1">
-									<div
-										class="h-full bg-primary rounded-md transition-all duration-1000"
-										style="width: {Math.min(
-											100,
-											(trainerState.vramUsageGb / trainerState.vramTotalGb) * 100
-										)}%"
-									></div>
-								</div>
-							</div>
-							<div class="space-y-4">
-								<div class="flex justify-between items-end">
-									<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-										Epoch Progress
-									</p>
-									<p class="text-lg font-bold font-mono text-on-surface">
-										{trainerState.epochCurrent} / {trainerState.epochTotal}
-										<span class="text-xs font-medium text-on-surface-variant"
-											>({trainerState.epochTotal > 0
-												? Math.round((trainerState.epochCurrent / trainerState.epochTotal) * 100)
-												: 0}%)</span
-										>
-									</p>
-								</div>
-								<div class="h-10 w-full bg-surface-container-high rounded-lg overflow-hidden p-1">
-									<div
-										class="h-full bg-gradient-to-r from-primary to-primary-container rounded-md relative transition-all duration-1000"
-										style="width: {trainerState.epochTotal > 0
-											? (trainerState.epochCurrent / trainerState.epochTotal) * 100
-											: 0}%"
-									>
-										{#if trainerState.isTraining}
-											<div class="absolute inset-0 bg-white/10 flex items-center justify-end px-2">
-												<div class="w-1 h-4 bg-white/40 rounded-full animate-pulse"></div>
-											</div>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div
-							class="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/10"
-						>
-							<div class="flex gap-2 shrink-0">
-								<button
-									onclick={() => sendUnslothControl('play')}
-									class="w-10 h-10 rounded-full {trainerState.isTraining
-										? 'bg-primary text-white shadow-md shadow-primary/20 hover:scale-105'
-										: 'bg-surface-container-lowest text-on-surface-variant border border-outline-variant/30 hover:bg-primary hover:text-white'} flex items-center justify-center transition-all active:scale-95 cursor-pointer"
-								>
-									<span
-										class="material-symbols-outlined text-[20px]"
-										style={trainerState.isTraining ? "font-variation-settings: 'FILL' 1;" : ''}
-										>play_arrow</span
-									>
-								</button>
-								<button
-									onclick={() => sendUnslothControl('pause')}
-									class="w-10 h-10 rounded-full {!trainerState.isTraining &&
-									trainerState.epochCurrent > 0
-										? 'bg-surface-variant text-on-surface shadow-inner'
-										: 'bg-surface-container-lowest text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high'} flex items-center justify-center transition-colors cursor-pointer"
-								>
-									<span class="material-symbols-outlined text-[20px]">pause</span>
-								</button>
-								<button
-									onclick={() => sendUnslothControl('stop')}
-									class="w-10 h-10 rounded-full bg-surface-container-lowest text-error border border-error/20 flex items-center justify-center hover:bg-error-container hover:text-error transition-colors cursor-pointer"
-								>
-									<span class="material-symbols-outlined text-[20px]">stop</span>
-								</button>
-							</div>
-							<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
-							<div class="flex-1 font-mono text-[11px] text-on-surface-variant leading-relaxed">
-								<p>[SYSTEM] {trainerState.lastCheckpoint}</p>
-								{#if trainerState.isTraining}
-									<p class="text-on-tertiary-container font-medium animate-pulse">
-										[INFO] Training speed: {trainerState.trainingSpeedTokensSec.toFixed(1)} tokens/sec
-									</p>
-								{:else}
-									<p class="text-on-surface-variant/50 font-medium">[INFO] Engine Sleeping...</p>
-								{/if}
-							</div>
-							<a
-								href="/engineer/unsloth"
-								class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors ml-auto tooltip"
-								title="Open Full Monitor"
-							>
-								<span class="material-symbols-outlined text-[20px]">open_in_new</span>
-							</a>
-						</div>
-					</section>
-				{/if}
 			</div>
 
 			<!-- Section 3: Right Sidebar Column -->
 			<div class="xl:col-span-5 space-y-8">
 				<!-- Alignment Metrics -->
-				{#if false}
-					<!-- Unsloth Native Configuration (v1.3.0 MOCK HIDDEN) -->
-					<section
-						class="bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/10 shadow-sm"
-					>
-						<div class="flex items-center gap-3 mb-8">
-							<span class="material-symbols-outlined text-secondary text-[24px]">memory</span>
-							<h2 class="text-sm font-bold text-on-surface uppercase tracking-widest">
-								Unsloth LoRA Engine
-							</h2>
-						</div>
+				<!-- Unsloth Native Configuration (v1.3.0 MOCK HIDDEN) -->
+				<section
+					class="bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/10 shadow-sm"
+				>
+					<div class="flex items-center gap-3 mb-8">
+						<span class="material-symbols-outlined text-secondary text-[24px]">memory</span>
+						<h2 class="text-sm font-bold text-on-surface uppercase tracking-widest">
+							Unsloth LoRA Engine
+						</h2>
+					</div>
 
-						<div class="space-y-8">
-							<div>
-								<div class="flex justify-between items-center mb-3">
-									<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest"
-										>LoRA Rank (r)</span
-									>
-									<span
-										class="px-2 py-1 bg-primary/10 text-primary font-extrabold text-xs rounded-lg"
-										>{trainerState.loraRank}</span
-									>
-								</div>
-								<input
-									type="range"
-									class="w-full accent-primary h-1.5 bg-surface-variant rounded-full appearance-none outline-none"
-									min="8"
-									max="128"
-									step="8"
-									bind:value={trainerState.loraRank}
-								/>
-								<div
-									class="flex justify-between text-[10px] text-on-surface-variant mt-2 font-mono"
+					<div class="space-y-8">
+						<div>
+							<div class="flex justify-between items-center mb-3">
+								<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest"
+									>LoRA Rank (r)</span
 								>
-									<span>r=8 (Fast)</span>
-									<span>r=128 (Detailed)</span>
-								</div>
+								<span class="px-2 py-1 bg-primary/10 text-primary font-extrabold text-xs rounded-lg"
+									>{trainerState.loraRank}</span
+								>
 							</div>
-
-							<div class="w-full h-[1px] bg-outline-variant/20"></div>
-
-							<div>
-								<div class="flex justify-between items-center mb-3">
-									<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest"
-										>Batch Size</span
-									>
-									<span
-										class="px-2 py-1 bg-secondary/10 text-secondary font-extrabold text-xs rounded-lg"
-										>{trainerState.batchSize}</span
-									>
-								</div>
-								<input
-									type="range"
-									class="w-full accent-secondary h-1.5 bg-surface-variant rounded-full appearance-none outline-none"
-									min="1"
-									max="32"
-									step="1"
-									bind:value={trainerState.batchSize}
-								/>
-								<div
-									class="flex justify-between text-[10px] text-on-surface-variant mt-2 font-mono"
-								>
-									<span>1 (Slow / Precise)</span>
-									<span>32 (High VRAM)</span>
-								</div>
+							<input
+								type="range"
+								class="w-full accent-primary h-1.5 bg-surface-variant rounded-full appearance-none outline-none"
+								min="8"
+								max="128"
+								step="8"
+								bind:value={trainerState.loraRank}
+							/>
+							<div class="flex justify-between text-[10px] text-on-surface-variant mt-2 font-mono">
+								<span>r=8 (Fast)</span>
+								<span>r=128 (Detailed)</span>
 							</div>
 						</div>
-					</section>
-				{/if}
+
+						<div class="w-full h-[1px] bg-outline-variant/20"></div>
+
+						<div>
+							<div class="flex justify-between items-center mb-3">
+								<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest"
+									>Batch Size</span
+								>
+								<span
+									class="px-2 py-1 bg-secondary/10 text-secondary font-extrabold text-xs rounded-lg"
+									>{trainerState.batchSize}</span
+								>
+							</div>
+							<input
+								type="range"
+								class="w-full accent-secondary h-1.5 bg-surface-variant rounded-full appearance-none outline-none"
+								min="1"
+								max="32"
+								step="1"
+								bind:value={trainerState.batchSize}
+							/>
+							<div class="flex justify-between text-[10px] text-on-surface-variant mt-2 font-mono">
+								<span>1 (Slow / Precise)</span>
+								<span>32 (High VRAM)</span>
+							</div>
+						</div>
+					</div>
+				</section>
 
 				<!-- Perfection Controls & Reflection Lab -->
 				<section
@@ -484,83 +340,6 @@
 							</div>
 						</div>
 					</div>
-
-					{#if false}
-						<!-- Reflection Lab Mini (v1.3.0 MOCK HIDDEN) -->
-						<div class="mt-8 pt-6 border-t border-outline-variant/20">
-							<h3 class="text-xs font-bold text-on-surface mb-4 uppercase tracking-widest">
-								Reflection Lab
-							</h3>
-							<div class="bg-surface p-5 rounded-2xl mb-4 border border-outline-variant/10">
-								<div class="flex justify-between items-center mb-6">
-									<div class="flex items-center gap-2">
-										<span class="material-symbols-outlined text-[16px] text-on-surface-variant"
-											>psychology</span
-										>
-										<p
-											class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest"
-										>
-											Internal Monologue
-										</p>
-									</div>
-									<button
-										onclick={() =>
-											(trainerState.internalMonologue = !trainerState.internalMonologue)}
-										title="Toggle Internal Monologue"
-										class="w-8 h-4 {trainerState.internalMonologue
-											? 'bg-tertiary shadow-[0_0_8px_rgba(79,175,110,0.4)]'
-											: 'bg-outline-variant'} rounded-full relative cursor-pointer transition-colors"
-									>
-										<div
-											class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all {trainerState.internalMonologue
-												? 'right-1'
-												: 'left-1'}"
-										></div>
-									</button>
-								</div>
-
-								<div class="flex items-end justify-between">
-									<div>
-										<!-- Use inverse gap to simulate truth grounded reflection success rate -->
-										<p class="text-3xl font-extrabold text-on-tertiary-container leading-none">
-											{Math.max(0, 100 - trainerState.knowledgeGapPercentage).toFixed(1)}%
-										</p>
-										<p
-											class="text-[10px] text-on-surface-variant font-bold mt-2 uppercase tracking-tight"
-										>
-											Self-Correction Rate
-										</p>
-									</div>
-
-									<!-- Mini Bar Chart -->
-									<div class="flex items-end gap-1.5 h-12">
-										<div
-											class="w-2 h-4 bg-tertiary-fixed-dim rounded-t-sm hover:h-6 transition-all duration-300"
-										></div>
-										<div
-											class="w-2 h-7 bg-tertiary-fixed-dim rounded-t-sm hover:h-8 transition-all duration-300"
-										></div>
-										<div
-											class="w-2 h-10 bg-tertiary-fixed-dim rounded-t-sm hover:h-11 transition-all duration-300"
-										></div>
-										<div
-											class="w-2 h-8 bg-tertiary-fixed-dim rounded-t-sm hover:h-9 transition-all duration-300"
-										></div>
-										<div
-											class="w-2 h-12 bg-on-tertiary-container rounded-t-sm shadow-[0_0_8px_rgba(79,175,110,0.4)]"
-										></div>
-									</div>
-								</div>
-							</div>
-
-							<a
-								href="/engineer/reflection"
-								class="block w-full py-3 bg-surface-container-high text-on-surface-variant text-[11px] font-bold rounded-xl hover:bg-surface-container-highest transition-colors uppercase tracking-widest text-center border border-outline-variant/10"
-							>
-								Visualize Reasoning Chain
-							</a>
-						</div>
-					{/if}
 				</section>
 			</div>
 		</div>
