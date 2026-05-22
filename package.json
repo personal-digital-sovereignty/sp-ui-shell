@@ -76,6 +76,6 @@
 		"tiptap-markdown": "^0.9.0"
 	},
 	"overrides": {
-		"cookie": "^0.7.0"
+		"devalue": "5.8.1"
 	}
 }
