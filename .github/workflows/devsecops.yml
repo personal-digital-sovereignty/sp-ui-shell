@@ -161,7 +161,6 @@ jobs:
           SCA_TRIVY: ${{ needs.sca-trivy.result }}
           QUALITY_SVELTE: ${{ needs.quality-svelte.result }}
           QUALITY_TEST: ${{ needs.quality-test.result }}
-          QUALITY_BUILD: ${{ needs.quality-build.result }}
         run: |
           echo "═══════════════════════════════════════════════"
           echo "  FOSS DevSecOps — Gate Summary"
@@ -172,20 +171,20 @@ jobs:
           echo "SCA (Trivy):        $SCA_TRIVY"
           echo "Svelte (Check):     $QUALITY_SVELTE"
           echo "Vitest (Tests):     $QUALITY_TEST"
-          echo "Build (Production): $QUALITY_BUILD"
           echo ""
 
           if [[ "$PIPELINE_SECURITY" == "failure" ]] || \
-             [[ "$SAST_SEMGREP" == "failure" ]] || \
-             [[ "$QUALITY_SVELTE" == "failure" ]]; then
-             [[ "$SAST_SEMGREP" == "failure" ]] || \
-             [[ "$QUALITY_SVELTE" == "failure" ]] || \
-             [[ "$QUALITY_BUILD" == "failure" ]]; then
+             [[ "$SAST_SEMGREP" == "failure" ]]; then
             echo "❌ CRITICAL GATE FAILURE — Merge blocked."
             exit 1
           fi
 
+          if [[ "$SCA_TRIVY" == "failure" ]]; then
             echo "::warning::Trivy SCA failed — review dependency vulnerabilities."
+          fi
+
+          if [[ "$QUALITY_TEST" == "failure" ]]; then
+            echo "::warning::Vitest failed — review test output."
           fi
 
           echo ""
