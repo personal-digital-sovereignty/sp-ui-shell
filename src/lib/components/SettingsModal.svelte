@@ -47,10 +47,12 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch(`${API_BASE_URL}/v1/system/available_models`);
+			const res = await fetch(`${API_BASE_URL}/v1/models`);
 			if (res.ok) {
 				const data = await res.json();
-				if (data.models) availableModels = data.models;
+				if (data.data) {
+					availableModels = data.data.map((m: any) => ({ name: m.id }));
+				}
 			}
 		} catch (e) {
 			console.error('Could not fetch models', e);
