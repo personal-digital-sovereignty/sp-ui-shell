@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { onMount } from 'svelte';
 	import { Lock, Unlock, FileText, X, Loader2, Shield, AlertTriangle, Eye } from 'lucide-svelte';
@@ -43,7 +45,7 @@
 			});
 			if (res.ok) prompts = await res.json();
 		} catch (e) {
-			console.error('Prompts load failed:', e);
+			logger.error('Prompts load failed:', e);
 		} finally {
 			isLoadingPrompts = false;
 		}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { FileText, Database, Folder, FolderOpen } from 'lucide-svelte';
@@ -27,7 +29,7 @@
 				}
 			}
 		} catch (e) {
-			console.error('Failed to sync Vault Graph:', e);
+			logger.error('Failed to sync Vault Graph:', e);
 		}
 	}
 

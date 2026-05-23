@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { onMount } from 'svelte';
 	import { Download, Upload } from 'lucide-svelte';
@@ -92,7 +94,7 @@
 				if (data.default_route) aiSettings.default_route = data.default_route;
 			}
 		} catch (e) {
-			console.error('Agent offline:', e);
+			logger.error('Agent offline:', e);
 		}
 
 		try {

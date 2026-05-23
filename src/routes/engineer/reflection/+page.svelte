@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { onMount, onDestroy } from 'svelte';
 	import { trainerState, exportReflectionLogs, getSelfCorrectRatio } from '@sp/ui-core/trainer';
 	import { API_BASE_URL } from '@sp/ui-core/config';
@@ -43,7 +45,7 @@
 			.then((data) => {
 				modelMatrix = data;
 			})
-			.catch((e) => console.error('Failed to fetch capabilities', e));
+			.catch((e) => logger.error('Failed to fetch capabilities', e));
 
 		// S3: Load persisted reflection settings from SQLite
 		fetch(`${API_BASE_URL}/v1/engineer/reflection/settings`)
@@ -59,7 +61,7 @@
 				if (typeof data.internal_monologue === 'boolean')
 					trainerState.internalMonologue = data.internal_monologue;
 			})
-			.catch((e) => console.error('Failed to load reflection settings', e));
+			.catch((e) => logger.error('Failed to load reflection settings', e));
 	});
 
 	onDestroy(() => {
@@ -91,7 +93,7 @@
 				})
 			});
 		} catch (e) {
-			console.error('Failed to persist reflection settings', e);
+			logger.error('Failed to persist reflection settings', e);
 		}
 	}
 
@@ -159,7 +161,7 @@
 				}
 				liveStreamLogs = [log, ...liveStreamLogs].slice(0, 50); // Keep last 50
 			} catch (err) {
-				console.error('SSE parse erro:', err);
+				logger.error('SSE parse erro:', err);
 			}
 		};
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { page } from '$app/state';
@@ -47,7 +49,7 @@
 			});
 			goto('/engineer/unsloth');
 		} catch (e) {
-			console.error(e);
+			logger.error(e);
 			isSubmitting = false;
 		}
 	}

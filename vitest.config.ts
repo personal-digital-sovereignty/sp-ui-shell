@@ -11,10 +11,10 @@ export default defineConfig({
 		setupFiles: ['./src/setupTest.ts'],
 		globals: true
 	},
-    resolve: {
+	resolve: {
 		alias: {
 			$lib: path.resolve('./src/lib'),
-            $app: path.resolve('./node_modules/@sveltejs/kit/src/runtime/app')
+			$app: path.resolve('./node_modules/@sveltejs/kit/src/runtime/app')
 		}
 	}
 });

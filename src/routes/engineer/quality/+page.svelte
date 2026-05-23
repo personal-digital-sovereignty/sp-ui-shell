@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { onMount, onDestroy } from 'svelte';
@@ -41,7 +43,7 @@
 			if (resRadar.ok) radar = await resRadar.json();
 			if (resGaps.ok) gaps = await resGaps.json();
 		} catch (e) {
-			console.error('Failed to load RAG Quality Data', e);
+			logger.error('Failed to load RAG Quality Data', e);
 		} finally {
 			is_loading = false;
 		}
@@ -97,7 +99,7 @@
 				body: JSON.stringify({ resolution_content: content })
 			});
 		} catch (e) {
-			console.error('Failed to inject context into the vault', e);
+			logger.error('Failed to inject context into the vault', e);
 			gaps = previousState; // Revert UI optimism on error
 			alert('Falha Cíbrida ao salvar documento .md e sincronizar o SQLite.');
 		}
@@ -117,7 +119,7 @@
 		try {
 			await fetch(`${API_BASE_URL}/v1/engineer/rag/gaps/${gap.id}`, { method: 'DELETE' });
 		} catch (e) {
-			console.error('Failed to Hard Delete gap', e);
+			logger.error('Failed to Hard Delete gap', e);
 			gaps = previousState;
 		}
 	}

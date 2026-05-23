@@ -16,54 +16,54 @@
 
 	async function startInstallation() {
 		isInstalling = true;
-		appendLog("🚀 Iniciando instalação Cíbrida Sovereign Pair...");
+		appendLog('🚀 Iniciando instalação Cíbrida Sovereign Pair...');
 
 		// 1. Detectar Ollama via Backend Rust API (Simulação Localhost Natively)
-		appendLog("🔍 Checando Engine RAG (Ollama) na Porta 11434...");
+		appendLog('🔍 Checando Engine RAG (Ollama) na Porta 11434...');
 		try {
-			const resMsg = await invoke("check_ollama_engine") as string;
+			const resMsg = (await invoke('check_ollama_engine')) as string;
 			ollamaDetected = true;
 			appendLog(`✅ ${resMsg}`);
 		} catch (e) {
 			ollamaDetected = false;
 			appendLog(`⚠️ AVISO: A API do Ollama retornou falha ou não está acessível! (${e})`);
-			appendLog("👉 Por favor, acesse https://ollama.com e instale.");
+			appendLog('👉 Por favor, acesse https://ollama.com e instale.');
 		}
 
 		// 2. Invocar o backend Rust para Instalar Serviço e SysTray
-		appendLog("⚙️ Solicitando privilégios ao Sistema Operacional para criar OS Daemons...");
-		
+		appendLog('⚙️ Solicitando privilégios ao Sistema Operacional para criar OS Daemons...');
+
 		try {
-			// Como o backend Rust "sovereign-core" é agora nosso sidecar, 
+			// Como o backend Rust "sovereign-core" é agora nosso sidecar,
 			// vamos executar sovereign-core --setup via shell do Tauri
 			// Nota: se precisarmos de root, precisamos de um comando com pkexec / macOS osascript
 			// Mas para MVP de setup UI, podemos rodar o CLI compilado e capturar stdout.
 			const coreCommand = Command.sidecar('binaries/sovereign-core', ['--setup']);
-			
-			coreCommand.stdout.on('data', line => {
+
+			coreCommand.stdout.on('data', (line) => {
 				appendLog(`[Core] ${line}`);
 			});
-			
-			coreCommand.stderr.on('data', line => {
+
+			coreCommand.stderr.on('data', (line) => {
 				appendLog(`[Core Err] ${line}`);
 			});
 
 			const output = await coreCommand.execute();
-			
+
 			if (output.code === 0) {
-				appendLog("✅ Sovereign Daemons e Logs Inicializados!");
-				
-				appendLog("🧩 Injetando Widgets de Desktop (KDE/Gnome) no Espaço do Usuário Local...");
+				appendLog('✅ Sovereign Daemons e Logs Inicializados!');
+
+				appendLog('🧩 Injetando Widgets de Desktop (KDE/Gnome) no Espaço do Usuário Local...');
 				try {
-					const widgetMsg = await invoke("install_desktop_widgets") as string;
+					const widgetMsg = (await invoke('install_desktop_widgets')) as string;
 					appendLog(`✅ ${widgetMsg}`);
 				} catch (wErr) {
 					appendLog(`⚠️ AVISO Widget: ${wErr}`);
 				}
 
 				try {
-					const deskPath = await join(await desktopDir(), "Sovereign_Install.log");
-					await writeTextFile(deskPath, statusLogs.join("\n"));
+					const deskPath = await join(await desktopDir(), 'Sovereign_Install.log');
+					await writeTextFile(deskPath, statusLogs.join('\n'));
 					appendLog(`📄 Log de implantação exportado para a sua Área de Trabalho!`);
 				} catch (logErr) {
 					appendLog(`⚠️ Falha ao exportar Log: ${logErr}`);
@@ -71,16 +71,16 @@
 
 				setupComplete = true;
 			} else {
-				appendLog(`❌ Erro de Sistema: Permissão Negada ou Falha (Código ${output.code}). Tente rodar o instalador como Administrador.`);
+				appendLog(
+					`❌ Erro de Sistema: Permissão Negada ou Falha (Código ${output.code}). Tente rodar o instalador como Administrador.`
+				);
 			}
-			
 		} catch (err) {
 			appendLog(`❌ Exceção Fatal ao integrar O.S: ${err}`);
 		}
 
 		isInstalling = false;
 	}
-
 </script>
 
 <div class="wizard-container">
@@ -89,7 +89,11 @@
 		<p class="subtitle">O seu Cíbrido Descentralizado está pronto para habitar o seu O.S</p>
 
 		<div class="actions">
-			<button class="primary-btn" on:click={startInstallation} disabled={isInstalling || setupComplete}>
+			<button
+				class="primary-btn"
+				on:click={startInstallation}
+				disabled={isInstalling || setupComplete}
+			>
 				{#if isInstalling}
 					Instalando Background Services...
 				{:else if setupComplete}
@@ -165,7 +169,9 @@
 		border-radius: 8px;
 		cursor: pointer;
 		font-weight: 500;
-		transition: transform 0.2s, box-shadow 0.2s;
+		transition:
+			transform 0.2s,
+			box-shadow 0.2s;
 	}
 
 	.primary-btn:hover:not(:disabled) {

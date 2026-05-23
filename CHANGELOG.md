@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [1.4.0-rc1] - 2026-05-07 — Estabilização de Pipeline e Docker
-   
+
 ### Fixed — CI/CD e Docker (Forensic Fixes)
+
 - **GLIBC Noble Migration:** Migrada imagem base do Docker de Debian Bookworm para Ubuntu 24.04 para compatibilidade com símbolos `__isoc23_strtoll` exigidos pelo `ort-sys`.
 - **UID 1000 Collision:** Implementada remoção automática do usuário padrão `ubuntu` nas imagens Ubuntu 24.04 para garantir que o usuário `sovereign` possa assumir o UID 1000.
 - **Binary Name Sync:** Corrigido erro de `COPY` no Dockerfile sincronizando o nome do artefato com o binário `sovereign-daemon` gerado pelo Cargo.
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Semgrep Security:** Corrigida vulnerabilidade de `run-shell-injection` no workflow Docker, migrando interpolações diretas `${{ }}` para variáveis de ambiente intermediárias.
 
 ### Changed — Arquitetura de Build
+
 - **Docker Runtime-Only:** Refatorado Dockerfile para eliminar o stage de compilação redundante (~115min economizados no ARM64). A imagem agora consome binários pré-compilados injetados via build context.
 - **Decoupling CI/Docker:** O build de imagens Docker foi desacoplado do pipeline principal `ci.yml`. Agora é executado on-demand via `docker.yml`, consumindo artefatos de releases estáveis ou nightly.
 
@@ -25,10 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] — Hotfix: CVE Patches + Clippy Gate
 
 ### Fixed — Seguranca (CVEs Trivy HIGH)
+
 - **CVE-2026-42327** (`openssl 0.10.78`): Undefined Behavior em `X509Ref::ocsp_responders` para certificados com OCSP URLs nao-UTF-8. Bumped para `0.10.79` no `Cargo.toml` + `cargo update` atualizou o `Cargo.lock`.
 - **GHSA-82j2-j2ch-gfr8** (`rustls-webpki 0.103.10`): Denial of Service via panic em CRL BIT STRING malformado. Bumped para `0.103.13` via `cargo update rustls-webpki`.
 
 ### Fixed — Clippy Gate (`-D warnings`)
+
 - **`clippy::manual_flatten`** (`api.rs:1069`): Substituiu `for res in join_all(...).await { if let Ok((link, md)) = res { ... } }` por `for (link, md) in join_all(...).await.into_iter().flatten() { ... }` conforme sugerido pelo Clippy.
 
 ---
@@ -36,11 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0-dev] - 2026-05-06 — Estabilizacao Estrutural Critica
 
 ### Fixed — AST e Delimitadores (api.rs)
+
 - **WAG Reranker lock scope:** O bloco `if let Ok(mut rlock) = RERANKER.lock()` nao fechava corretamente seu delimitador `}`, arrastando a logica subsequente para dentro do escopo do lock. Brace inserida na linha correta.
 - **`futures_util::join_all` loop:** O iterador assincrono sobre `scrape_handles` nao possuia brace de fechamento, causando colapso da arvore sintatica (AST) a partir da linha ~916.
 - **`tokio::spawn` SSE streaming leak:** Chave de fechamento `});` prematura no corpo do `res.bytes_stream().map(move |result| {...})` deixava o `tokio::spawn` principal do chat handler sem fechamento ate o fim do arquivo, corrompendo todo o escopo do Axum stream handler.
 
 ### Refactored — Let Chains (Rust 2024 -> Rust 2021)
+
 - **`api.rs`:** `if use_openrouter && let Some(settings) = openrouter_settings` convertido para blocos `if` aninhados compativeis com Rust 2021 stable.
 - **`research.rs`:** Removidas 10 instancias de `&& let` em:
   - `scrape_ghost_fallbacks`: pattern matching regex `__NEXT_DATA__`
@@ -51,14 +57,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `search_searxng_public`: parse de resultados da instancia SearXNG
 
 ### Fixed — CI/CD Pipeline
+
 - Removidos caracteres nao-ASCII (emojis, acentuacoes em comentarios YAML) dos workflows `ci.yml`, `docker.yml`, `deploy-oci.yml`, `release_notes.yml` para conformidade com `actionlint`.
 - Migrada logica de nomeacao de imagens Docker de `$GITHUB_ENV` para Step Outputs (`id: prep -> outputs.image_name`), seguindo melhores praticas do `actionlint`.
 - Corrigida sanitizacao de tags GHCR (lowercase enforcement).
 
 ### Added — Documentacao
+
 - `_strategy/CONSTRUCTION_LOG_COMPLETE.md`: Secao "Correcoes Estruturais Criticas (2026-05-06)" documentando toda a investigacao da AST e refatoracao final de Let Chains.
 
 ### Validated
+
 - `cargo check`: Exit 0, 0 erros, 0 warnings fatais.
 - `cargo test`: **136 testes Rust passando** (0 failed).
 - `pytest`: **108 testes Python passando** (0 failed).
@@ -69,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0-alpha] - 2026-05-03 — Desacoplamento e Modularizacao
 
 ### Added
+
 - Repositorio `sp-service` extraido do monolito `sovereign-pair` via `git subtree`.
 - 5 workflows CI/CD configurados: `ci.yml`, `devsecops.yml`, `docker.yml`, `deploy-oci.yml`, `release_notes.yml`.
 - Branch protection ativada na `main` com required status checks.
@@ -78,11 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OpenAPI 3.0 spec (`docs/api/`).
 
 ### Changed
+
 - `Cargo.toml`: versao atualizada para `1.4.0-dev`, edition `2021`.
 - `src/api.rs`: Triagem agêntica refatorada (Trivial / Web / Sys) para suporte a `is_trivial`, `is_web`, `is_sys`.
 - Todos os 138 erros de Let Chains (Rust 2024) refatorados para Rust 2021 nested-ifs (14 arquivos).
 
 ### Fixed
+
 - Suporte dinamico a modelo via `discover_best_model_from_matrix` (eliminacao de hardcodes).
 - SecOps Vault: override de API keys de providers (NVIDIA, Qwen, OpenRouter) via vault criptografado.
 - SSH Mesh Connector: Master Resolver para conectividade OCI/Oracle Cloud.
@@ -92,10 +104,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.2] - 2026-04-29 — Dynamic Model Discovery
 
 ### Added
+
 - Helper `discover_best_model_from_matrix` para descoberta dinamica de modelos via SQLite `model_capabilities`.
 - Sincronizacao de versao `v1.3.2` em todos os arquivos de configuracao.
 
 ### Fixed
+
 - Eliminacao de referencias hardcoded a modelos em `api.rs`, `api_trainer.rs`, `sync_engine.rs`, `auto_evaluator.rs`.
 - Pipeline CI/CD para macOS x64 validado.
 
@@ -104,11 +118,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-04-23 — Sovereign RAG & Resilience Shield
 
 ### Added
+
 - RAG Pipeline com geracao de tabelas Markdown e indicadores de fonte.
 - OOM Guard / Hardware Telemetry (monitoramento VRAM cross-platform: Linux sysfs, nvidia-smi, Apple Silicon).
 - Health Gate: `health_check_apis.py` no startup + a cada 4h, persiste em `api_health_log`, expoe `GET /v1/analytics/api_health`.
 
 ### Fixed
+
 - 6 gaps auditados no Resilience Shield (GAP-RS-01 a RS-06): 4 corrigidos, 1 deferido, 1 confirmado nao-gap.
 
 ---

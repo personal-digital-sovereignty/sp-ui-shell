@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { onMount } from 'svelte';
 	import { Trash2, Loader2 } from 'lucide-svelte';
@@ -25,7 +27,7 @@
 			const matrixRes = await fetch(`${API_BASE_URL}/v1/settings/model_capabilities`);
 			if (matrixRes.ok) modelMatrix = await matrixRes.json();
 		} catch (e) {
-			console.error('Failed to load Model Matrix:', e);
+			logger.error('Failed to load Model Matrix:', e);
 		}
 	});
 
@@ -59,7 +61,7 @@
 			});
 			if (res.ok) (model as any)[fieldName] = value;
 		} catch (e) {
-			console.error('Failed to update matrix toggle:', e);
+			logger.error('Failed to update matrix toggle:', e);
 		} finally {
 			isSavingMatrix = false;
 		}
@@ -79,7 +81,7 @@
 			);
 			if (res.ok) modelMatrix = modelMatrix.filter((m) => m.model_name !== modelName);
 		} catch (e) {
-			console.error('Failed to delete matrix entry:', e);
+			logger.error('Failed to delete matrix entry:', e);
 		}
 	}
 

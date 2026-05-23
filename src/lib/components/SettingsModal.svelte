@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import {
@@ -55,7 +57,7 @@
 				}
 			}
 		} catch (e) {
-			console.error('Could not fetch models', e);
+			logger.error('Could not fetch models', e);
 		}
 
 		loadWorkspaces();
@@ -73,7 +75,7 @@
 				workspaces = await res.json();
 			}
 		} catch (e) {
-			console.error('Could not fetch workspaces', e);
+			logger.error('Could not fetch workspaces', e);
 		}
 		isLoadingWs = false;
 	}
@@ -96,7 +98,7 @@
 				alert(data.message || 'Error adding workspace');
 			}
 		} catch (e) {
-			console.error('Error adding workspace', e);
+			logger.error('Error adding workspace', e);
 		}
 		isAddingWs = false;
 	}
@@ -109,7 +111,7 @@
 				workspaces = workspaces.filter((w) => w.id !== id);
 			}
 		} catch (e) {
-			console.error('Error deleting workspace', e);
+			logger.error('Error deleting workspace', e);
 		}
 	}
 
@@ -123,7 +125,7 @@
 			const res = await fetch(`${API_BASE_URL}/v1/settings/searxng`);
 			if (res.ok) searxngNodes = await res.json();
 		} catch (e) {
-			console.error('Could not fetch searxng nodes', e);
+			logger.error('Could not fetch searxng nodes', e);
 		}
 		isLoadingSearxng = false;
 	}
@@ -149,7 +151,7 @@
 				headers: { 'Content-Type': 'application/json' }
 			});
 		} catch (e) {
-			console.error(e);
+			logger.error(e);
 		}
 	}
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import '../app.css';
@@ -89,7 +91,7 @@
 				}
 			}
 		} catch (e) {
-			console.error('Failed to load workspaces via Rust API:', e);
+			logger.error('Failed to load workspaces via Rust API:', e);
 		}
 	}
 
