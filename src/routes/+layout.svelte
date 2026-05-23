@@ -192,39 +192,45 @@
 					<MessageCircle class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
 					{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Chat</span>{/if}
 				</a>
-				<a
-					class="flex items-center {globalState.isSidebarOpen
-						? 'px-4 justify-start'
-						: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/vault')
-						? 'bg-white/10 text-white font-medium shadow-sm'
-						: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
-					href="/vault"
-				>
-					<Folder class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
-					{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Vault</span>{/if}
-				</a>
-				<a
-					class="flex items-center {globalState.isSidebarOpen
-						? 'px-4 justify-start'
-						: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/projects')
-						? 'bg-white/10 text-white font-medium shadow-sm'
-						: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
-					href="/projects"
-				>
-					<LayoutGrid class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
-					{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Projects</span>{/if}
-				</a>
-				<a
-					class="flex items-center {globalState.isSidebarOpen
-						? 'px-4 justify-start'
-						: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/coding')
-						? 'bg-white/10 text-white font-medium shadow-sm'
-						: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
-					href="/coding"
-				>
-					<Code2 class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
-					{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Coding</span>{/if}
-				</a>
+				{#if settingsState.enabledModules.includes('vault')}
+					<a
+						class="flex items-center {globalState.isSidebarOpen
+							? 'px-4 justify-start'
+							: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/vault')
+							? 'bg-white/10 text-white font-medium shadow-sm'
+							: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
+						href="/vault"
+					>
+						<Folder class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
+						{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Vault</span>{/if}
+					</a>
+				{/if}
+				{#if settingsState.enabledModules.includes('projects')}
+					<a
+						class="flex items-center {globalState.isSidebarOpen
+							? 'px-4 justify-start'
+							: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/projects')
+							? 'bg-white/10 text-white font-medium shadow-sm'
+							: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
+						href="/projects"
+					>
+						<LayoutGrid class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
+						{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Projects</span>{/if}
+					</a>
+				{/if}
+				{#if settingsState.enabledModules.includes('coding')}
+					<a
+						class="flex items-center {globalState.isSidebarOpen
+							? 'px-4 justify-start'
+							: 'p-3 justify-center'} py-3 rounded-xl transition-colors {routeId.includes('/coding')
+							? 'bg-white/10 text-white font-medium shadow-sm'
+							: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
+						href="/coding"
+					>
+						<Code2 class="w-5 h-5 {globalState.isSidebarOpen ? 'mr-4' : ''}" />
+						{#if globalState.isSidebarOpen}<span class="font-medium text-[15px]">Coding</span>{/if}
+					</a>
+				{/if}
 
 				<!-- System Modules Category -->
 				{#if globalState.isSidebarOpen}
@@ -236,18 +242,19 @@
 				{:else}
 					<div class="w-10 h-px bg-white/10 my-4 mx-auto"></div>
 				{/if}
-				<a
-					class="flex items-center {globalState.isSidebarOpen
-						? 'px-4 justify-start'
-						: 'p-3 justify-center'} py-2.5 rounded-lg transition-colors {routeId.includes('/graph')
-						? 'bg-white/10 text-white font-medium shadow-sm'
-						: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
-					href="/graph"
-				>
-					<Network class="w-4 h-4 {globalState.isSidebarOpen ? 'mr-3' : ''}" />
-					{#if globalState.isSidebarOpen}<span class="font-medium text-sm">Cognitive Graph</span
-						>{/if}
-				</a>
+				{#if settingsState.enabledModules.includes('rag')}
+					<a
+						class="flex items-center {globalState.isSidebarOpen
+							? 'px-4 justify-start'
+							: 'p-3 justify-center'} py-2.5 rounded-lg transition-colors {routeId.includes('/graph')
+							? 'bg-white/10 text-white font-medium shadow-sm'
+							: 'text-[#94A3B8] hover:bg-white/5 hover:text-white'}"
+						href="/graph"
+					>
+						<Network class="w-4 h-4 {globalState.isSidebarOpen ? 'mr-3' : ''}" />
+						{#if globalState.isSidebarOpen}<span class="font-medium text-sm">Cognitive Graph</span>{/if}
+					</a>
+				{/if}
 				<a
 					class="flex items-center {globalState.isSidebarOpen
 						? 'px-4 justify-start'
