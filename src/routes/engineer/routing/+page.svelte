@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { onMount, onDestroy } from 'svelte';
@@ -76,7 +78,7 @@
 			const resModels = await fetch(`${API_BASE_URL}/v1/engineer/rag/models`);
 			if (resModels.ok) models = await resModels.json();
 		} catch (e) {
-			console.error('Failed to load RAG engine data', e);
+			logger.error('Failed to load RAG engine data', e);
 		} finally {
 			is_loading = false;
 		}

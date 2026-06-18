@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { onMount, onDestroy } from 'svelte';
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { Terminal, Download, Play, Pause, Trash2, Clock, Bug, Zap } from 'lucide-svelte';
@@ -38,13 +40,13 @@
 					}, 50);
 				}
 			} catch (e) {
-				console.error('Failed to parse log event', e);
+				logger.error('Failed to parse log event', e);
 			}
 		};
 
 		eventSource.onerror = () => {
 			// Reconnect logic usually handled by browser, but we can visually show it disconnected
-			console.warn('SSE Log Stream disconnected. Waiting for browser to reconnect...');
+			logger.warn('SSE Log Stream disconnected. Waiting for browser to reconnect...');
 		};
 	}
 

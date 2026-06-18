@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import {
@@ -47,13 +49,15 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch(`${API_BASE_URL}/v1/system/available_models`);
+			const res = await fetch(`${API_BASE_URL}/v1/models`);
 			if (res.ok) {
 				const data = await res.json();
-				if (data.models) availableModels = data.models;
+				if (data.data) {
+					availableModels = data.data.map((m: any) => ({ name: m.id }));
+				}
 			}
 		} catch (e) {
-			console.error('Could not fetch models', e);
+			logger.error('Could not fetch models', e);
 		}
 
 		loadWorkspaces();
@@ -71,7 +75,7 @@
 				workspaces = await res.json();
 			}
 		} catch (e) {
-			console.error('Could not fetch workspaces', e);
+			logger.error('Could not fetch workspaces', e);
 		}
 		isLoadingWs = false;
 	}
@@ -94,7 +98,7 @@
 				alert(data.message || 'Error adding workspace');
 			}
 		} catch (e) {
-			console.error('Error adding workspace', e);
+			logger.error('Error adding workspace', e);
 		}
 		isAddingWs = false;
 	}
@@ -107,7 +111,7 @@
 				workspaces = workspaces.filter((w) => w.id !== id);
 			}
 		} catch (e) {
-			console.error('Error deleting workspace', e);
+			logger.error('Error deleting workspace', e);
 		}
 	}
 
@@ -121,7 +125,7 @@
 			const res = await fetch(`${API_BASE_URL}/v1/settings/searxng`);
 			if (res.ok) searxngNodes = await res.json();
 		} catch (e) {
-			console.error('Could not fetch searxng nodes', e);
+			logger.error('Could not fetch searxng nodes', e);
 		}
 		isLoadingSearxng = false;
 	}
@@ -147,7 +151,7 @@
 				headers: { 'Content-Type': 'application/json' }
 			});
 		} catch (e) {
-			console.error(e);
+			logger.error(e);
 		}
 	}
 
@@ -236,7 +240,7 @@
 			<div
 				class="flex px-8 border-b border-slate-200 dark:border-[#424859]/20 bg-slate-50/50 dark:bg-[#0c1324] transition-colors overflow-x-auto no-scrollbar"
 			>
-				{#each ['Workspaces', 'Engine', 'Cloud Mesh', 'Alibaba Qwen', 'NVIDIA NIM', 'Persona', 'Profile', 'Guardrails'] as tab}
+				{#each ['Workspaces', 'Engine', 'Cloud Mesh', 'Alibaba Qwen', 'NVIDIA NIM', 'Modules', 'Persona', 'Profile', 'Guardrails'] as tab}
 					<button
 						class="px-6 py-3 text-sm font-bold border-b-2 transition-colors cursor-pointer {activeTab ===
 						tab
@@ -803,6 +807,140 @@
 								* Note: Para usar estes modelos no chat, prefixe o nome do modelo com `nvidia/` (ex:
 								`nvidia/meta/llama-3.1-405b-instruct`).
 							</p>
+						</div>
+					</section>
+				{/if}
+
+				{#if activeTab === 'Modules'}
+					<section class="space-y-6">
+						<div>
+							<h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+								Plug-in Modules (Sovereign Operating System)
+							</h3>
+							<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+								Enable or disable platform features. Disabled modules will not load and will not consume memory.
+							</p>
+						</div>
+
+						<div class="space-y-4">
+							<!-- Core Chat (Always active) -->
+							<div
+								class="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#0c1324] border border-slate-200 dark:border-[#424859]/20 rounded-xl"
+							>
+								<div class="space-y-0.5">
+									<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+										Core Chat Interface
+										<span class="text-[9px] px-2 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-[#74b0ff] font-bold rounded-full uppercase">Core</span>
+									</h4>
+									<p class="text-xs text-slate-500 dark:text-slate-400">
+										The central agentic interface for Ollama, OpenRouter, Qwen and NIM.
+									</p>
+								</div>
+								<label class="relative inline-flex items-center cursor-not-allowed">
+									<input type="checkbox" checked disabled class="sr-only peer" />
+									<div class="w-11 h-6 bg-indigo-600 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 after:translate-x-full"></div>
+								</label>
+							</div>
+
+							<!-- Knowledge Vault -->
+							<div
+								class="flex items-center justify-between p-4 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-[#424859]/20 rounded-xl hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-colors"
+							>
+								<div class="space-y-0.5">
+									<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+										Knowledge Vault (Dual-Truth Explorer)
+									</h4>
+									<p class="text-xs text-slate-500 dark:text-slate-400">
+										Explore directories, edit Markdown notes, and synchronize with SQLite.
+									</p>
+								</div>
+								<label class="relative inline-flex items-center cursor-pointer">
+									<input
+										type="checkbox"
+										value="vault"
+										bind:group={settingsState.enabledModules}
+										class="sr-only peer"
+									/>
+									<div
+										class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"
+									></div>
+								</label>
+							</div>
+
+							<!-- Projects Kanban -->
+							<div
+								class="flex items-center justify-between p-4 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-[#424859]/20 rounded-xl hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-colors"
+							>
+								<div class="space-y-0.5">
+									<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+										Projects &amp; Tasks (Kanban Board)
+									</h4>
+									<p class="text-xs text-slate-500 dark:text-slate-400">
+										Track team projects, schedule tasks, and assign agentic workflows.
+									</p>
+								</div>
+								<label class="relative inline-flex items-center cursor-pointer">
+									<input
+										type="checkbox"
+										value="projects"
+										bind:group={settingsState.enabledModules}
+										class="sr-only peer"
+									/>
+									<div
+										class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"
+									></div>
+								</label>
+							</div>
+
+							<!-- RAG Matrix -->
+							<div
+								class="flex items-center justify-between p-4 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-[#424859]/20 rounded-xl hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-colors"
+							>
+								<div class="space-y-0.5">
+									<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+										RAG Deep Research &amp; Graphs
+									</h4>
+									<p class="text-xs text-slate-500 dark:text-slate-400">
+										Monitor live web-scraping agents and visualize 3D cognitive graphs.
+									</p>
+								</div>
+								<label class="relative inline-flex items-center cursor-pointer">
+									<input
+										type="checkbox"
+										value="rag"
+										bind:group={settingsState.enabledModules}
+										class="sr-only peer"
+									/>
+									<div
+										class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"
+									></div>
+								</label>
+							</div>
+
+							<!-- Coding Environment -->
+							<div
+								class="flex items-center justify-between p-4 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-[#424859]/20 rounded-xl hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-colors"
+							>
+								<div class="space-y-0.5">
+									<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+										Agentic Coding Environment
+									</h4>
+									<p class="text-xs text-slate-500 dark:text-slate-400">
+										Integrated Monaco Editor, Real PTY Terminal, and LLM coding assistant.
+									</p>
+								</div>
+								<label class="relative inline-flex items-center cursor-pointer">
+									<input
+										type="checkbox"
+										value="coding"
+										bind:group={settingsState.enabledModules}
+										class="sr-only peer"
+									/>
+									<div
+										class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"
+									></div>
+								</label>
+							</div>
 						</div>
 					</section>
 				{/if}

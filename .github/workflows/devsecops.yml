@@ -8,7 +8,7 @@ name: FOSS DevSecOps
 
 on:
   pull_request:
-    branches: [ main, 'release/**' ]
+    branches: [main, 'release/**']
   workflow_dispatch:
     inputs:
       skip_trivy:
@@ -17,7 +17,7 @@ on:
         default: false
 
   push:
-    branches: [ main ]
+    branches: [main]
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -29,7 +29,7 @@ permissions: read-all
 
 jobs:
   pipeline-security:
-    name: "🔒 Gate 0: Actionlint & Zizmor"
+    name: '🔒 Gate 0: Actionlint & Zizmor'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -50,7 +50,7 @@ jobs:
           zizmor .github/workflows || echo "::warning::Zizmor audit complete (non-blocking)."
 
   sast-semgrep:
-    name: "🛡️ Gate 1: Semgrep SAST"
+    name: '🛡️ Gate 1: Semgrep SAST'
     needs: pipeline-security
     runs-on: ubuntu-latest
     container:
@@ -62,7 +62,7 @@ jobs:
         run: semgrep scan --config auto --error
 
   sca-trivy:
-    name: "📦 Gate 2: Trivy SCA"
+    name: '📦 Gate 2: Trivy SCA'
     needs: pipeline-security
     if: ${{ github.event.inputs.skip_trivy != 'true' }}
     runs-on: ubuntu-latest
@@ -80,9 +80,8 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-version-check: true
 
-
   quality-svelte:
-    name: "🌐 Gate 3: Svelte Check"
+    name: '🌐 Gate 3: Svelte Check'
     needs: pipeline-security
     runs-on: ubuntu-latest
     steps:
@@ -101,7 +100,7 @@ jobs:
         run: npm run check || true
 
   quality-test:
-    name: "🧪 Gate 4: Vitest Unit Tests"
+    name: '🧪 Gate 4: Vitest Unit Tests'
     needs: pipeline-security
     runs-on: ubuntu-latest
     steps:
@@ -123,7 +122,7 @@ jobs:
   # Gate 5: Build Validation (Shell is the Host)
   # ==========================================
   quality-build:
-    name: "🏗️ Gate 5: Production Build"
+    name: '🏗️ Gate 5: Production Build'
     needs: pipeline-security
     runs-on: ubuntu-latest
     steps:
@@ -145,7 +144,7 @@ jobs:
   # Aggregate Gate — Branch Protection Rule Target
   # ==========================================
   foss-devsecops-gate:
-    name: "✅ FOSS DevSecOps Gate"
+    name: '✅ FOSS DevSecOps Gate'
     if: always()
     needs:
       - pipeline-security
@@ -155,6 +154,9 @@ jobs:
       - quality-test
       - quality-build
     runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      contents: read
     steps:
       - name: Evaluate gate results
         env:
@@ -163,6 +165,7 @@ jobs:
           SCA_TRIVY: ${{ needs.sca-trivy.result }}
           QUALITY_SVELTE: ${{ needs.quality-svelte.result }}
           QUALITY_TEST: ${{ needs.quality-test.result }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "═══════════════════════════════════════════════"
           echo "  FOSS DevSecOps — Gate Summary"
@@ -175,10 +178,14 @@ jobs:
           echo "Vitest (Tests):     $QUALITY_TEST"
           echo ""
 
+          STATE="success"
+          DESC="ALL FOSS DevSecOps Gates Passed - Merge authorized."
+
           if [[ "$PIPELINE_SECURITY" == "failure" ]] || \
              [[ "$SAST_SEMGREP" == "failure" ]]; then
             echo "❌ CRITICAL GATE FAILURE — Merge blocked."
-            exit 1
+            STATE="failure"
+            DESC="CRITICAL GATE FAILURE - Merge blocked."
           fi
 
           if [[ "$SCA_TRIVY" == "failure" ]]; then
@@ -187,6 +194,22 @@ jobs:
 
           if [[ "$QUALITY_TEST" == "failure" ]]; then
             echo "::warning::Vitest failed — review test output."
+          fi
+
+          SHA="${{ github.event.pull_request.head.sha }}"
+          if [ -z "$SHA" ]; then
+            SHA="${{ github.sha }}"
+          fi
+
+          echo "Reporting status '$STATE' to context 'FOSS DevSecOps Gate' for commit $SHA..."
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/statuses/$SHA \
+            -d "{\"state\":\"$STATE\", \"context\":\"FOSS DevSecOps Gate\", \"description\":\"$DESC\", \"target_url\":\"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+
+          if [ "$STATE" = "failure" ]; then
+            exit 1
           fi
 
           echo ""

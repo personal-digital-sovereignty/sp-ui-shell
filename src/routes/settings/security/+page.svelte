@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 	import { onMount } from 'svelte';
 	import { Loader2, X } from 'lucide-svelte';
@@ -33,7 +35,7 @@
 			const res = await fetch(`${API_BASE_URL}/v1/settings/secops_vault`);
 			if (res.ok) vaultSecrets = await res.json();
 		} catch (e) {
-			console.error('Failed to load SecOps Vault', e);
+			logger.error('Failed to load SecOps Vault', e);
 		} finally {
 			isLoading = false;
 		}
@@ -59,7 +61,7 @@
 				alert('Erro ao salvar Key/Endpoint.');
 			}
 		} catch (e) {
-			console.error('Failed to save Secret', e);
+			logger.error('Failed to save Secret', e);
 		}
 	}
 

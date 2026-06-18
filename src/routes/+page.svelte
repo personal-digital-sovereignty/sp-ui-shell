@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import { onMount } from 'svelte';
@@ -28,7 +30,7 @@
 				error = 'Failed to synchronize Sensus Cognitive Graph.';
 			}
 		} catch (e) {
-			console.error(e);
+			logger.error(e);
 			error = 'Sovereign Core offline or unreachable.';
 		}
 		loading = false;

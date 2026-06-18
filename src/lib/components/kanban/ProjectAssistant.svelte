@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logger } from '@sp/ui-core/logger';
+
 	import { API_BASE_URL } from '@sp/ui-core/config';
 
 	import type { Project } from '@sp/ui-core/projects';
@@ -115,7 +117,7 @@
 				}
 			}
 		} catch (e) {
-			console.error(e);
+			logger.error(e);
 			chatLog[assistantIndex].content = '**Erro fatal ao contatar a API.** Servidor desligado?';
 		}
 	}
