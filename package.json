@@ -43,7 +43,7 @@
 	},
 	"dependencies": {
 		"@sp/ui-core": "file:../sp-ui-core",
-		"@tauri-apps/api": "2.10.3",
+		"@tauri-apps/api": "2.10.1",
 		"@tauri-apps/plugin-dialog": "2.6.0",
 		"@tauri-apps/plugin-fs": "2.4.5",
 		"@tauri-apps/plugin-os": "2.3.2",
