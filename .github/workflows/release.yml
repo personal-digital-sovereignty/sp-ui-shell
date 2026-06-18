@@ -50,16 +50,21 @@ jobs:
 
       - name: Download & Scaffold Backend Sidecar
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CLIENT_PAYLOAD_TAG: ${{ github.event.client_payload.tag }}
+          INPUT_BACKEND_TAG: ${{ github.event.inputs.backend_tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           mkdir -p src-tauri/binaries
           
           # Determine version tag to fetch
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            TAG_NAME="${{ github.event.client_payload.tag }}"
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ github.event.inputs.backend_tag }}"
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            TAG_NAME="$CLIENT_PAYLOAD_TAG"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG_NAME="$INPUT_BACKEND_TAG"
           else
-            TAG_NAME="${{ github.ref_name }}"
+            TAG_NAME="$REF_NAME"
           fi
           
           echo "Target Release Tag: $TAG_NAME"
