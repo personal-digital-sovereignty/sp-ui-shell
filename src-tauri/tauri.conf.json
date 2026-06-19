@@ -50,7 +50,7 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"externalBin": ["binaries/sovereign-core"],
-		"resources": ["../../infra/plasma-widget/**/*", "../../core/python_workers/**/*"]
+		"externalBin": ["binaries/sp-service"],
+		"resources": ["../../sovereign-pair/infra/plasma-widget/**/*", "../../sp-service/python_workers/**/*"]
 	}
 }
