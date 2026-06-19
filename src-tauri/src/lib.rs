@@ -73,7 +73,7 @@ pub fn run() {
       use tauri_plugin_shell::process::CommandEvent;
 
       // Fase 41: Sovereign Core Sidecar Spawning
-      match app.shell().sidecar("sovereign-core") {
+      match app.shell().sidecar("sp-service") {
           Ok(sidecar_command) => {
               match sidecar_command.spawn() {
                   Ok((mut rx, _child)) => {
@@ -90,7 +90,7 @@ pub fn run() {
                   Err(e) => eprintln!("❌ Falha Máxima ao invocar Sidecar: {}", e),
               }
           },
-          Err(e) => eprintln!("❌ Binário sidecar 'sovereign-core' não econtrado no bundle Desktop: {}", e),
+          Err(e) => eprintln!("❌ Binário sidecar 'sp-service' não econtrado no bundle Desktop: {}", e),
       }
 
       let quit_i = MenuItem::with_id(app, "quit", "Sair do Cíbrido", true, None::<&str>)?;
