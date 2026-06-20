@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"build": "vite build && mkdir -p build/assets/sp_ui_chat build/assets/sp_ui_vault build/assets/sp_ui_projects build/assets/sp_ui_rag build/assets/sp_ui_coding && cp -r ../sp-ui-chat/build/* build/assets/sp_ui_chat/ && cp -r ../sp-ui-vault/build/* build/assets/sp_ui_vault/ && cp -r ../sp-ui-projects/build/* build/assets/sp_ui_projects/ && cp -r ../sp-ui-rag/build/* build/assets/sp_ui_rag/ && cp -r ../sp-ui-coding/build/* build/assets/sp_ui_coding/",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
