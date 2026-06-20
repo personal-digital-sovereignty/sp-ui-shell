@@ -25,6 +25,9 @@ vite.config.ts.timestamp-*
 # Tauri sidecar binaries (build artifacts — never commit)
 src-tauri/binaries/
 *.bin
+*.deb
+*.rpm
+*.AppImage
 
 # ============================================================================
 # SOVEREIGN SECURITY (from sovereign-pair .gitignore)
