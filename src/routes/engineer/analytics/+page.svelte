@@ -14,9 +14,51 @@
 		DownloadCloud,
 		RefreshCw,
 		ShieldCheck,
-		Database
+		Database,
+		XCircle,
+		WifiOff,
+		CircleOff
 	} from 'lucide-svelte';
 	import { telemetryState } from '@sp/ui-core/telemetry';
+
+	// GAP-RS-02: mapeia cada status do Resilience Shield para ícone/cor distintos —
+	// UNREACHABLE (falha de rede) precisa ser visualmente diferente de DEAD (falha HTTP/schema).
+	type ApiStatusConfig = { icon: typeof CheckCircle2; text: string; bg: string; border: string };
+	const apiStatusMap: Record<string, ApiStatusConfig> = {
+		HEALTHY: {
+			icon: CheckCircle2,
+			text: 'text-emerald-600 dark:text-emerald-400',
+			bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+			border: 'border-emerald-100 dark:border-emerald-900/50'
+		},
+		UNREACHABLE: {
+			icon: WifiOff,
+			text: 'text-amber-600 dark:text-amber-400',
+			bg: 'bg-amber-50 dark:bg-amber-900/20',
+			border: 'border-amber-100 dark:border-amber-900/50'
+		},
+		DEAD: {
+			icon: XCircle,
+			text: 'text-rose-600 dark:text-rose-400',
+			bg: 'bg-rose-50 dark:bg-rose-900/20',
+			border: 'border-rose-100 dark:border-rose-900/50'
+		},
+		EMPTY: {
+			icon: AlertCircle,
+			text: 'text-slate-500 dark:text-slate-400',
+			bg: 'bg-slate-50 dark:bg-slate-800/50',
+			border: 'border-slate-200 dark:border-slate-700'
+		},
+		SKIP: {
+			icon: CircleOff,
+			text: 'text-slate-400 dark:text-slate-500',
+			bg: 'bg-slate-50 dark:bg-slate-800/30',
+			border: 'border-slate-200 dark:border-slate-800'
+		}
+	};
+	function apiStatusConfig(status: string): ApiStatusConfig {
+		return apiStatusMap[status] ?? apiStatusMap.EMPTY;
+	}
 
 	const tailwindPalette = [
 		{ bg: 'bg-blue-500', bgHover: 'group-hover:bg-blue-600', text: 'text-blue-600' },
@@ -425,6 +467,104 @@
 							</div>
 						</div>
 					</div>
+				</div>
+			</div>
+
+			<!-- Row 2.5: Resilience Shield — External API Health (GAP-RS-02) -->
+			<div
+				class="bg-white dark:bg-[#12192b] p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0"
+			>
+				<div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+					<div class="flex items-center gap-3">
+						<div class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+							<ShieldCheck class="w-5 h-5" />
+						</div>
+						<div>
+							<h2 class="text-xl font-bold text-slate-800 dark:text-slate-200">Resilience Shield</h2>
+							<p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+								Saúde das fontes externas (BCB SGS · Yahoo Finance) — última checagem: {telemetryState.apiLastChecked}
+							</p>
+						</div>
+					</div>
+					<div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+						<span
+							class="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50"
+						>
+							{telemetryState.apiHealthy} Healthy
+						</span>
+						{#if telemetryState.apiUnreachable > 0}
+							<span
+								class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50"
+								title="Falha de rede: DNS, conexão recusada ou timeout"
+							>
+								{telemetryState.apiUnreachable} Unreachable
+							</span>
+						{/if}
+						{#if telemetryState.apiDead > 0}
+							<span
+								class="px-2.5 py-1 rounded-md bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50"
+								title="Falha HTTP/schema: API respondeu, mas com erro"
+							>
+								{telemetryState.apiDead} Dead
+							</span>
+						{/if}
+						{#if telemetryState.apiEmpty > 0}
+							<span
+								class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+							>
+								{telemetryState.apiEmpty} Empty
+							</span>
+						{/if}
+					</div>
+				</div>
+
+				{#if telemetryState.apiCriticalFailures.length > 0}
+					<div
+						class="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 text-xs font-bold"
+					>
+						<AlertTriangle class="w-4 h-4 shrink-0" />
+						Falhas críticas: {telemetryState.apiCriticalFailures.join(', ')}
+					</div>
+				{/if}
+
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+					{#each telemetryState.apiEntries as api}
+						{@const cfg = apiStatusConfig(api.status)}
+						{@const StatusIcon = cfg.icon}
+						<div class="flex items-start gap-3 p-4 rounded-2xl border {cfg.border} {cfg.bg}">
+							<StatusIcon class="w-4 h-4 mt-0.5 shrink-0 {cfg.text}" />
+							<div class="min-w-0 flex-1">
+								<div class="flex items-center justify-between gap-2">
+									<span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate"
+										>{api.name}</span
+									>
+									{#if api.critical}
+										<span class="text-[9px] font-black uppercase tracking-widest text-rose-500 shrink-0"
+											>Critical</span
+										>
+									{/if}
+								</div>
+								<p class="text-[10px] font-bold uppercase tracking-widest {cfg.text} mt-0.5">
+									{api.status}
+								</p>
+								{#if api.error}
+									<p
+										class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate"
+										title={api.error}
+									>
+										{api.error}
+									</p>
+								{/if}
+							</div>
+						</div>
+					{/each}
+					{#if telemetryState.apiEntries.length === 0}
+						<p
+							class="text-xs text-slate-400 dark:text-slate-500 font-medium col-span-full p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800"
+						>
+							Aguardando primeira checagem do Resilience Shield.
+						</p>
+					{/if}
 				</div>
 			</div>
 

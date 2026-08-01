@@ -197,7 +197,7 @@
 	}
 
 	.terminal {
-		background: #000;
+		background: #0c111d; /* Deep Space Blue — visual_identity.md: nunca preto puro (#000000) */
 		border-radius: 8px;
 		padding: 1rem;
 		height: 250px;

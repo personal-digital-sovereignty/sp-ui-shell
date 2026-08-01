@@ -182,7 +182,7 @@
 	<div
 		bind:this={logsContainer}
 		onscroll={handleScroll}
-		class="flex-1 p-4 overflow-y-auto space-y-1 font-mono text-[13px] bg-black/40 scroll-smooth leading-relaxed"
+		class="flex-1 p-4 overflow-y-auto space-y-1 font-mono text-[13px] bg-slate-950/40 scroll-smooth leading-relaxed"
 	>
 		{#if telemetryState.systemLogs.length === 0}
 			<div

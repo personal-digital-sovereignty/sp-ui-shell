@@ -341,7 +341,7 @@
 						<span class="text-primary-fixed font-medium">Latent Space Match</span>
 						<span class="font-bold text-white">+12% vs Baseline</span>
 					</div>
-					<div class="w-full bg-black/20 h-2 rounded-full overflow-hidden">
+					<div class="w-full bg-slate-950/20 h-2 rounded-full overflow-hidden">
 						<div
 							class="bg-primary-fixed h-full w-[88%] rounded-full shadow-[0_0_10px_rgba(222,225,255,0.5)]"
 						></div>

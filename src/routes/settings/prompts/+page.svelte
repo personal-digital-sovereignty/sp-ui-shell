@@ -275,7 +275,7 @@
 <!-- VIEWER MODAL -->
 {#if viewingPrompt}
 	<div
-		class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-12"
+		class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 sm:p-12"
 		onclick={() => (viewingPrompt = null)}
 	>
 		<div
@@ -354,7 +354,7 @@
 <!-- PROMPT MODAL -->
 {#if showPromptModal}
 	<div
-		class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-12"
+		class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 sm:p-12"
 		onclick={() => (showPromptModal = false)}
 	>
 		<div
