@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { logger } from '@sp/ui-core/logger';
-
 	import { API_BASE_URL } from '@sp/ui-core/config';
-
+	import { telemetryState } from '@sp/ui-core/telemetry';
 	import { onMount, onDestroy } from 'svelte';
 
 	interface KnowledgeGap {
@@ -477,6 +476,99 @@
 										</button>
 									</td>
 								{/if}
+							</tr>
+						{/each}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<!-- LLM Judge Audit Logs -->
+	<div
+		class="col-span-12 bg-white dark:bg-[#12192b] rounded-3xl p-8 border border-slate-100 dark:border-slate-800/50 shadow-sm mt-6 transition-colors"
+	>
+		<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+			<div>
+				<h3 class="font-manrope font-bold text-2xl text-slate-800 dark:text-slate-200">
+					Autonomous LLM Judge Audit
+				</h3>
+				<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+					Real-time evaluation logs tracking Faithfulness and Precision across all LLM responses.
+				</p>
+			</div>
+			<div class="flex items-center gap-3">
+				<span
+					class="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 text-[10px] font-bold rounded-full flex items-center justify-center gap-1.5"
+				>
+					<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+					LIVE AUDIT
+				</span>
+			</div>
+		</div>
+
+		<div class="overflow-x-auto no-scrollbar">
+			<table class="w-full text-left">
+				<thead>
+					<tr
+						class="text-[10px] uppercase font-bold tracking-widest text-slate-400 border-b border-slate-100 dark:border-slate-800/50"
+					>
+						<th class="pb-4 px-3 w-[25%]">User Query</th>
+						<th class="pb-4 px-3 w-[35%]">AI Response</th>
+						<th class="pb-4 px-3 text-center">Faithfulness</th>
+						<th class="pb-4 px-3 text-center">Precision</th>
+						<th class="pb-4 px-3 text-right">Time</th>
+					</tr>
+				</thead>
+				<tbody class="text-sm">
+					{#if !telemetryState.connected}
+						<tr>
+							<td colspan="5" class="py-12 text-center text-slate-400 font-medium"
+								>Connecting to Telemetry Stream...</td
+							>
+						</tr>
+					{:else if telemetryState.evaluations.length === 0}
+						<tr>
+							<td colspan="5" class="py-12 text-center text-slate-400 font-medium"
+								>No recent evaluations logged.</td
+							>
+						</tr>
+					{:else}
+						{#each telemetryState.evaluations as eval_log}
+							<tr
+								class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-800/50 last:border-0"
+							>
+								<td class="py-5 px-3">
+									<div class="font-bold text-slate-800 dark:text-slate-200 text-xs line-clamp-2" title={eval_log.user_query}>
+										"{eval_log.user_query}"
+									</div>
+								</td>
+								<td class="py-5 px-3">
+									<div class="text-slate-500 dark:text-slate-400 text-xs line-clamp-2" title={eval_log.ai_response}>
+										{eval_log.ai_response}
+									</div>
+								</td>
+								<td class="py-5 px-3 text-center">
+									{#if eval_log.faithfulness_score >= 90}
+										<span class="px-2.5 py-1 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">{eval_log.faithfulness_score}</span>
+									{:else if eval_log.faithfulness_score >= 75}
+										<span class="px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold border border-amber-200 dark:border-amber-800">{eval_log.faithfulness_score}</span>
+									{:else}
+										<span class="px-2.5 py-1 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold border border-rose-200 dark:border-rose-800">{eval_log.faithfulness_score}</span>
+									{/if}
+								</td>
+								<td class="py-5 px-3 text-center">
+									{#if eval_log.precision_score >= 90}
+										<span class="px-2.5 py-1 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">{eval_log.precision_score}</span>
+									{:else if eval_log.precision_score >= 75}
+										<span class="px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold border border-amber-200 dark:border-amber-800">{eval_log.precision_score}</span>
+									{:else}
+										<span class="px-2.5 py-1 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold border border-rose-200 dark:border-rose-800">{eval_log.precision_score}</span>
+									{/if}
+								</td>
+								<td class="py-5 px-3 text-right">
+									<span class="text-[10px] font-mono text-slate-400">{eval_log.created_at.split(' ')[1] || eval_log.created_at}</span>
+								</td>
 							</tr>
 						{/each}
 					{/if}
