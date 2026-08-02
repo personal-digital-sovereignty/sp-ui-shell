@@ -1,7 +1,7 @@
 {
 	"name": "svelte-ui",
 	"private": true,
-	"version": "1.7.0-dev",
+	"version": "1.5.0-rc.1",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -31,6 +31,7 @@
 		"@types/d3": "^7.4.3",
 		"@types/dompurify": "^3.0.5",
 		"@types/marked": "^5.0.2",
+		"@types/node": "^26.1.2",
 		"concurrently": "^10.0.4",
 		"jsdom": "^29.0.0",
 		"prettier": "^3.8.1",

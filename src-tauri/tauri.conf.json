@@ -51,6 +51,6 @@
 			"icons/icon.ico"
 		],
 		"externalBin": ["binaries/sp-service"],
-		"resources": ["../../sovereign-pair/infra/plasma-widget/**/*", "../../sp-service/python_workers/**/*"]
+		"resources": ["../../sp-service/python_workers/**/*"]
 	}
 }
