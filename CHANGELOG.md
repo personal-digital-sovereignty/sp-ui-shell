@@ -447,3 +447,7 @@ Sem alterações de frontend documentadas nesta versão — bump de versão em c
 - `Fixed` - Correções de bugs
 - `Security` - Correções de vulnerabilidades
 - `Documentation` - Mudanças na documentação
+
+## [Unreleased]
+### Fixed
+- Resolved Module Federation Hydration and Build issues by using Vanilla JS Wrappers for remote components.

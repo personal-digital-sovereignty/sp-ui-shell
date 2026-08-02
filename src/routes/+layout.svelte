@@ -23,7 +23,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import InlineSpotlight from 'sp_ui_chat/InlineSpotlight';
+	import { mountSpotlight, unmountSpotlight } from 'sp_ui_chat/InlineSpotlight';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import ManualModal from '$lib/components/ManualModal.svelte';
@@ -58,6 +58,18 @@
 			} catch (e) {
 				goto('/dashboard');
 			}
+		}
+	});
+
+	// Sovereign Spotlight Mount Container
+	let spotlightContainer: HTMLElement | null = $state(null);
+
+	$effect(() => {
+		if (spotlightContainer && mountSpotlight) {
+			const instance = mountSpotlight(spotlightContainer, { onNavigate: goto });
+			return () => {
+				unmountSpotlight(instance);
+			};
 		}
 	});
 
@@ -115,7 +127,8 @@
 	<div
 		class="h-screen print:h-auto print:overflow-visible w-full flex overflow-hidden antialiased text-slate-800 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#080e1d] font-sans"
 	>
-		<InlineSpotlight onNavigate={goto} />
+		<!-- Sovereign Spotlight (Command-K Hub) -->
+		<div bind:this={spotlightContainer}></div>
 
 		<aside
 			class="{globalState.isSidebarOpen

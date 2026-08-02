@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Cybrid Svelte UI E2E Assurance', () => {
 	test.beforeEach(async ({ page }) => {
+		page.on('pageerror', err => console.log('PAGE ERROR:', err.message, err.stack));
+		page.on('console', msg => console.log('PAGE CONSOLE:', msg.text()));
 		// Inject auth token to bypass the Pin Login wall globally for all E2E tests
 		await page.addInitScript(() => {
 			window.localStorage.setItem('sovereign_token', 'e2e-mock-token-123456');

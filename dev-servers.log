@@ -1,0 +1,30 @@
+[0] 
+[0] > sp-ui-chat@0.1.0 dev
+[0] > vite dev
+[0] 
+[1] 
+[1] > svelte-ui@1.7.0-dev dev
+[1] > vite dev
+[1] 
+[0] 
+[0]   VITE v6.4.2  ready in 657 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5174/
+[0]   ➜  Network: use --host to expose
+[1] [ Module Federation DTS ] Failed to download types archive from "http://localhost:5174/@mf-types.zip". Set FEDERATION_DEBUG=true for details.
+[1] [ Module Federation DTS ] Failed to download types archive from "http://localhost:5175/@mf-types.zip". Set FEDERATION_DEBUG=true for details.
+[1] [ Module Federation DTS ] Failed to download types archive from "http://localhost:5176/@mf-types.zip". Set FEDERATION_DEBUG=true for details.
+[1] [ Module Federation DTS ] Failed to download types archive from "http://localhost:5177/@mf-types.zip". Set FEDERATION_DEBUG=true for details.
+[1] [ Module Federation DTS ] Failed to download types archive from "http://localhost:5178/@mf-types.zip". Set FEDERATION_DEBUG=true for details.
+[1] [ Module Federation DTS ] Federated types extraction completed
+[1] 
+[1]   VITE v6.4.2  ready in 722 ms
+[1] 
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: use --host to expose
+[1] 1:46:53 AM [vite-plugin-svelte] src/lib/components/SettingsModal.svelte:989:7 A form label must be associated with a control
+[1] https://svelte.dev/e/a11y_label_has_associated_control
+[1] Terminated
+[0] Terminated
+[0] cd ../sp-ui-chat && npm run dev exited with code 143
+[1] npm run dev exited with code 143
