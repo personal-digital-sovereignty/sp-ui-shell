@@ -30,29 +30,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout sp-ui-core
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: personal-digital-sovereignty/sp-ui-core
-          ref: main
-          path: sp-ui-core
-
-
-      - name: Link sp-ui-core (Unix)
-        if: matrix.platform != 'windows-latest'
-        run: ln -s "$(pwd)/sp-ui-core" ../sp-ui-core
-
-      - name: Link sp-ui-core (Windows)
-        if: matrix.platform == 'windows-latest'
-        shell: cmd
-        run: mklink /d "%CD%\..\sp-ui-core" "%CD%\sp-ui-core"
-
-
-      - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
-        with:
-          node-version: 22
-          cache: 'npm'
+      - name: Setup sp-ui-core
+        uses: personal-digital-sovereignty/sp-ui-core@f3cbcd6d6178283d8e72ef542a4c32ed0a6aa780 # release-v1.5.0-rc.1
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
@@ -62,9 +41,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-
-      - name: Install Node Dependencies
-        run: npm install
 
       - name: Download & Scaffold Backend Sidecar
         shell: bash
