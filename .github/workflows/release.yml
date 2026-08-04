@@ -49,13 +49,13 @@ jobs:
 
 
       - name: Setup Node.js
-        uses: actions/setup-node@3963e1d654f8c27140a08709ec7944151b4cc521 # v4.1.0
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       - name: Install Linux System Dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -136,7 +136,7 @@ jobs:
           ls -la src-tauri/binaries/
 
       - name: Build and Publish Desktop Package
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
