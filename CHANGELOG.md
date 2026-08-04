@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.5.0-rc.1] - 2026-08-04
+## [1.7.0-dev] - 2026-08-04
 
-*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), e da rodada de segurança abaixo (2026-08-04).*
+*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), da rodada de segurança abaixo (2026-08-04) e da correção de uma regressão de versão: uma sessão anterior havia renomeado esta entrada para `1.5.0-rc.1` (alinhando com a tag suite-wide cortada nos outros 7 repos), mas isso contradizia a correção documentada logo abaixo (`1.3.2` → `1.7.0-dev`, refletindo a tag real `v1.6.0` já shippada). Renomeado de volta para `1.7.0-dev` — a numeração deste repo segue sua própria linhagem, não a da suite.*
 
 ### Added
 - **Painel "Resilience Shield" (GAP-RS-02)**: Nova seção em `engineer/analytics/+page.svelte` renderizando o status por-API do Resilience Shield (`telemetryState.apiEntries`), com badge e ícone distintos para `HEALTHY`/`UNREACHABLE`/`DEAD`/`EMPTY`/`SKIP` — antes esse dado era buscado do backend mas nenhum componente da UI o exibia.
