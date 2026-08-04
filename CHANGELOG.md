@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.5.0-rc.1] - 2026-08-04
 
-*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01).*
+*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), e da rodada de segurança abaixo (2026-08-04).*
 
 ### Added
 - **Painel "Resilience Shield" (GAP-RS-02)**: Nova seção em `engineer/analytics/+page.svelte` renderizando o status por-API do Resilience Shield (`telemetryState.apiEntries`), com badge e ícone distintos para `HEALTHY`/`UNREACHABLE`/`DEAD`/`EMPTY`/`SKIP` — antes esse dado era buscado do backend mas nenhum componente da UI o exibia.
@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Ignorar Extensões de Pacote Compilado**: `.gitignore` atualizado para ignorar extensões de pacotes de release compilados (`90a41bbe`).
+
+### Security
+- **Trivy (SCA)**: corrigidas 3 vulnerabilidades `HIGH` do gate `FOSS DevSecOps` — `CVE-2026-59869` (`js-yaml`, DoS) via bump para `^4.3.0`; `CVE-2026-48801`/`CVE-2026-59887` (`linkify-it`, DoS algorítmico/mailto) via override forçado para `5.0.2`. Revalidado localmente com Trivy v0.72.0 real: 0 vulnerabilidades.
+- **Semgrep (SAST)**: `actions/checkout@v4` e `actions/setup-node@v4` fixados em SHA de commit em todos os workflows, resolvendo a regra `github-actions-mutable-action-tag`.
+- **Correção do gate quebrado**: o SHA de `actions/setup-node` pinado acima estava incorreto (inexistente no repositório real), derrubando toda pipeline com "unable to resolve action". Corrigido para o SHA real de v4.1.0. Também pinados `dtolnay/rust-toolchain@stable` e `tauri-apps/tauri-action@v0`, que ainda estavam em tag mutável e continuavam bloqueando o gate Semgrep.
 
 ---
 
