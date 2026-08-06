@@ -23,7 +23,6 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import { mountSpotlight, unmountSpotlight } from 'sp_ui_chat/InlineSpotlight';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import ManualModal from '$lib/components/ManualModal.svelte';
@@ -36,10 +35,29 @@
 	let isChangelogOpen = $state(false);
 	let { children } = $props();
 
+	// sp_ui_chat/InlineSpotlight é um módulo federado (Module Federation) — importar
+	// estaticamente no layout raiz (que envolve TODAS as rotas) cria uma dependência
+	// circular entre o chunk do layout e o chunk de carregamento do remote, causando
+	// "ReferenceError: Cannot access 'universal' before initialization" de forma
+	// intermitente (SvelteKit precisa que o load "universal" do layout inicialize
+	// antes de qualquer módulo federado, mas o import estático inverte essa ordem).
+	// Import dinâmico dentro do onMount evita o ciclo — mesma regra vale pra
+	// chat/+page.svelte e spotlight/+page.svelte.
+	let mountSpotlight: any = $state(null);
+	let unmountSpotlight: any = $state(null);
+
 	onMount(async () => {
 		connectTelemetry();
 		fetchWorkspaces();
 		loadSettings();
+
+		try {
+			const spotlightModule = await import('sp_ui_chat/InlineSpotlight');
+			mountSpotlight = spotlightModule.mountSpotlight;
+			unmountSpotlight = spotlightModule.unmountSpotlight;
+		} catch (e) {
+			logger.error('Failed to load Spotlight remote module:', e);
+		}
 
 		// Sovereign Boot Preference Interception
 		if (window.location.pathname === '/') {

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ChatPanel from 'sp_ui_chat/ChatPanel';
 	import { Search } from 'lucide-svelte';
 	import { globalState } from '@sp/ui-core/state';
 	import { onMount } from 'svelte';
@@ -9,9 +8,16 @@
 		getCurrentWindow().close();
 	}
 
-	onMount(() => {
+	// Import dinâmico (não estático) do módulo federado — ver nota em
+	// routes/+layout.svelte sobre o ReferenceError de TDZ que import estático causa.
+	let ChatPanel: any = $state(null);
+
+	onMount(async () => {
 		// Spotlight always opens to an empty chat initially
 		globalState.chat.activeSessionId = null;
+
+		const mod = await import('sp_ui_chat/ChatPanel');
+		ChatPanel = mod.default;
 
 		const handleKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
@@ -55,7 +61,9 @@
 		</div>
 
 		<div class="flex-1 w-full flex overflow-hidden relative">
-			<ChatPanel />
+			{#if ChatPanel}
+				<ChatPanel />
+			{/if}
 		</div>
 	</div>
 </div>
