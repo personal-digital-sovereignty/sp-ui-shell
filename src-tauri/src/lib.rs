@@ -72,6 +72,17 @@ pub fn run() {
       use tauri_plugin_shell::ShellExt;
       use tauri_plugin_shell::process::CommandEvent;
 
+      // Mostra a janela "main" ANTES de qualquer outra coisa no setup — o resto
+      // deste closure usa `?` em cascata (menu -> tray icon), e um `TrayIconBuilder
+      // ::build(app)?` que falhe (ex: sem bandeja de sistema/StatusNotifierWatcher
+      // no ambiente, confirmado reproduzindo com Xvfb: a janela ficava com
+      // map_state=Unmapped porque o `?` do tray abortava o setup() inteiro antes de
+      // chegar no .show()) não pode mais impedir a janela principal de aparecer.
+      if let Some(window) = app.get_webview_window("main") {
+          let _ = window.show();
+          let _ = window.set_focus();
+      }
+
       // Fase 41: Sovereign Core Sidecar Spawning
       match app.shell().sidecar("sp-service") {
           Ok(sidecar_command) => {
@@ -128,19 +139,6 @@ pub fn run() {
             .level(log::LevelFilter::Info)
             .build(),
         )?;
-      }
-
-      // A janela "main" nasce com `"visible": false` (tauri.conf.json) pra evitar
-      // o flash de conteúdo não estilizado antes do WebView carregar — mas nada
-      // em lugar nenhum (Rust ou frontend) jamais chamava `.show()` fora do clique
-      // manual no ícone da bandeja. Resultado: no primeiro lançamento o app abria
-      // uma janela real, porém eternamente invisível/vazia, sem nenhuma pista de
-      // que a UI de verdade só aparecia via bandeja. Mostra a janela principal
-      // assim que o setup termina, igual ao comportamento esperado de um app
-      // desktop comum (a bandeja continua funcionando pra reabrir depois de fechar).
-      if let Some(window) = app.get_webview_window("main") {
-          let _ = window.show();
-          let _ = window.set_focus();
       }
 
       Ok(())
