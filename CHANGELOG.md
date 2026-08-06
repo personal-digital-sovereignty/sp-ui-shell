@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Validado**: `curl` contra a release real (`nightly`) retorna HTTP 200 pros 3 assets corrigidos.
 - **Caveat encontrado durante a validação**: a release `v1.7.0-rc1` do `sp-service` (a que uma tag `v1.7.0-rc1` neste repo tentaria consumir) **não tem nenhum asset** — `publish-stable` do `sp-service` nunca rodou de verdade (histórico de runs é só `push main`, nunca `push tags/*`). Testar o pipeline completo via tag real vai falhar até alguém cortar uma tag de verdade no `sp-service` primeiro (ou usar `workflow_dispatch` com `backend_tag: nightly`, que já tem assets).
 
+### Fixed — 2 bugs adicionais achados ao rodar o pipeline de verdade (`workflow_dispatch`, `backend_tag: nightly`)
+- **`tauri.conf.json` `resources: ["../../sp-service/python_workers/**/*"]`** não resolvia (glob vazio = erro fatal do `build.rs` do Tauri) porque `sp-service` nunca era checked out como irmão do workspace. Corrigido com checkout sparse (só `python_workers/`).
+- **Windows**: `npm run build` falhava com "The syntax of the command is incorrect" — o script usava `mkdir -p`/`cp -r` (POSIX, incompatível com `cmd.exe`). Substituído por `scripts/bundle-remotes.mjs` (Node `fs.cpSync`, cross-platform de verdade).
+- **Resultado real, confirmado em CI** (run `31061535829`, `workflow_dispatch`): as 3 plataformas completaram com sucesso pela primeira vez desde a modularização, gerando `.dmg`+`.app.tar.gz` (macOS), `.deb`+`.rpm`+`.AppImage` (Linux) e `.exe`(NSIS)+`.msi` (Windows) — publicados como release draft (`tag: main`).
+
 ---
 
 ## [1.7.0-dev] - 2026-08-04
