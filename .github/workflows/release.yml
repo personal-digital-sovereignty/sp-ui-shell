@@ -81,6 +81,22 @@ jobs:
           ref: main
           path: sp-ui-coding
 
+      # tauri.conf.json declara `resources: ["../../sp-service/python_workers/**/*"]`
+      # (relativo a src-tauri/, ou seja, sp-ui-shell/../../sp-service = irmão do
+      # workspace) — sem esse diretório o build.rs do Tauri falha com "glob
+      # pattern ... path not found" (resource glob vazio é erro fatal, não
+      # silencioso). Sparse-checkout: só python_workers/ é usado, sem o resto
+      # do backend Rust.
+      - name: Checkout sp-service (python_workers bundlado pelo Tauri)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-service
+          ref: main
+          path: sp-service
+          sparse-checkout: |
+            python_workers
+          sparse-checkout-cone-mode: true
+
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
