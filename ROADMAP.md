@@ -3,7 +3,7 @@
 **Shell Micro-Frontend (Host)** — App Tauri/SvelteKit e host de Module Federation do Sovereign Pair. Consome os demais microfrontends (`sp-ui-chat`, `sp-ui-vault`, `sp-ui-projects`, `sp-ui-rag`, `sp-ui-coding`) como remotes independentes.
 
 **Versão Atual:** 1.7.0-dev
-**Última Atualização:** 2026-08-01
+**Última Atualização:** 2026-08-06
 
 ---
 
@@ -24,7 +24,8 @@ Ver `CHANGELOG.md` para o detalhamento completo, versão a versão, com hashes d
 - [x] **SvelteKit 2 + Svelte 5 (Runes)** + Tauri (desktop, multi-OS)
 - [x] **Module Federation (Host)**: consome `sp-ui-chat`, `sp-ui-vault`, `sp-ui-projects`, `sp-ui-rag`, `sp-ui-coding` como remotes, com lazy loading e bundle local de produção
 - [x] **`@sp/ui-core`**: estado, config e componentes compartilhados integrados (`env_config`, `telemetry`, `BlockEditor`)
-- [x] **CI/CD**: `devsecops.yml` (Gate FOSS: Gitleaks, Trivy, lint) + `release.yml` (pipeline Tauri multi-OS)
+- [x] **CI/CD**: `devsecops.yml` (Gate FOSS: Gitleaks, Trivy, lint)
+- [x] **`release.yml` (pipeline Tauri multi-OS)**: **nunca teve sucesso desde a modularização** até 2026-08-06 (todo o histórico de runs era falha/cancelado, nenhuma release publicada) — corrigidos os dois bugs que impediam qualquer build real: (1) faltava checkout+build dos 5 repos irmãos antes do `npm run build` do Shell; (2) o sidecar do `sp-service` baixava de uma org inexistente e caía silenciosamente num binário dummy. Ver `CHANGELOG.md` ([Unreleased]).
 - [x] **Testes**: E2E Playwright (`provider_settings`, `security_accessibility`, `core`) + unit tests (`security.test.ts`, `state.test.ts`)
 - [x] **Resilience Shield UI (GAP-RS-02)**: painel de status por-API (`HEALTHY`/`UNREACHABLE`/`DEAD`/`EMPTY`/`SKIP`) em `engineer/analytics`
 - [x] **Federation Drift (Gap #2) resolvido**: `BlockEditor`/`MicrophoneButton` deduplicados, migrados para `@sp/ui-core`
@@ -37,7 +38,8 @@ Ver `CHANGELOG.md` para o detalhamento completo, versão a versão, com hashes d
 
 ### Imediato
 - [ ] Tag de release formal cobrindo o trabalho pós-`v1.6.0` (13 commits de CI hardening + Resilience Shield UI)
-- [ ] Automatizar sincronização de versão entre `package.json`, tags Git e `CHANGELOG.md` (hoje é manual e já divergiu uma vez)
+- [ ] Automatizar sincronização de versão entre `package.json`, tags Git e `CHANGELOG.md` (hoje é manual e já divergiu uma vez) — `tauri.conf.json` também ficou pra trás (`1.3.2`), não só o `package.json`
+- [ ] **Bloqueador pra testar o Desktop CD via tag real**: `sp-service` nunca cortou uma tag com `publish-stable` de verdade (histórico só tem `push main`) — a release `v1.7.0-rc1` de lá não tem nenhum asset. Cortar uma tag real no `sp-service` antes de tentar uma tag `v*.*.*` aqui, ou usar `workflow_dispatch` com `backend_tag: nightly` pra validar o pipeline enquanto isso
 
 ### Curto Prazo — Confiabilidade da Interface (Item 7 do roadmap mestre, v1.7)
 - [ ] **WebSockets**: reconexão automática com backoff exponencial no frontend caso o `sp-service` caia
