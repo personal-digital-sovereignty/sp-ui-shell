@@ -129,6 +129,20 @@ pub fn run() {
             .build(),
         )?;
       }
+
+      // A janela "main" nasce com `"visible": false` (tauri.conf.json) pra evitar
+      // o flash de conteúdo não estilizado antes do WebView carregar — mas nada
+      // em lugar nenhum (Rust ou frontend) jamais chamava `.show()` fora do clique
+      // manual no ícone da bandeja. Resultado: no primeiro lançamento o app abria
+      // uma janela real, porém eternamente invisível/vazia, sem nenhuma pista de
+      // que a UI de verdade só aparecia via bandeja. Mostra a janela principal
+      // assim que o setup termina, igual ao comportamento esperado de um app
+      // desktop comum (a bandeja continua funcionando pra reabrir depois de fechar).
+      if let Some(window) = app.get_webview_window("main") {
+          let _ = window.show();
+          let _ = window.set_focus();
+      }
+
       Ok(())
     })
     .on_window_event(|window, event| match event {
