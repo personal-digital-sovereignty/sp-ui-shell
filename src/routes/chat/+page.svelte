@@ -1,12 +1,25 @@
-<script>
-	import ChatPanel from 'sp_ui_chat/ChatPanel';
-	import ChatHistorySidebar from 'sp_ui_chat/ChatHistorySidebar';
+<script lang="ts">
+	import { onMount } from 'svelte';
 	import { MessageSquare, Settings, Plus } from 'lucide-svelte';
 	import { settingsState } from '@sp/ui-core/settings';
 
 	// Start closed on small screens/windows logically, but let's default to open since it's desktop primary,
 	// but the user wants to reduce it. We'll default to open and let them close it cleanly.
 	let isHistoryOpen = $state(true);
+
+	// Import dinâmico (não estático) do módulo federado — ver nota em
+	// routes/+layout.svelte sobre o ReferenceError de TDZ que import estático causa.
+	let ChatPanel: any = $state(null);
+	let ChatHistorySidebar: any = $state(null);
+
+	onMount(async () => {
+		const [panelModule, sidebarModule] = await Promise.all([
+			import('sp_ui_chat/ChatPanel'),
+			import('sp_ui_chat/ChatHistorySidebar')
+		]);
+		ChatPanel = panelModule.default;
+		ChatHistorySidebar = sidebarModule.default;
+	});
 </script>
 
 <div class="flex flex-col h-full w-full bg-[#F4F7FA] dark:bg-[#080e1d] font-sans">
@@ -30,13 +43,17 @@
 			<aside
 				class="w-72 md:w-80 shrink-0 border border-slate-200/60 dark:border-[#424859]/20 rounded-2xl overflow-hidden flex flex-col bg-white/90 dark:bg-[#12192b] backdrop-blur-md shadow-sm dark:shadow-none z-10 transition-all duration-300 animate-in slide-in-from-left-4 fade-in"
 			>
-				<ChatHistorySidebar />
+				{#if ChatHistorySidebar}
+					<ChatHistorySidebar />
+				{/if}
 			</aside>
 		{/if}
 		<main
 			class="flex-1 flex flex-col relative min-w-0 bg-white/90 dark:bg-[#12192b] backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-[#424859]/20 shadow-sm dark:shadow-none overflow-hidden transition-all duration-300"
 		>
-			<ChatPanel />
+			{#if ChatPanel}
+				<ChatPanel />
+			{/if}
 		</main>
 	</div>
 </div>
