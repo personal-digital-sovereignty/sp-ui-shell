@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] — Fix: Desktop CD nunca produziu um app de verdade
+
+*Investigado em 2026-08-06 depois de o usuário não encontrar o app em `/Applications` no macOS. Descoberta: o workflow "Sovereign Desktop CD" (`release.yml`) nunca teve sucesso desde a modularização — todo o histórico de runs é falha/cancelado, e este repo nunca publicou uma release. Dois bugs independentes, ambos corrigidos nesta rodada.*
+
+### Fixed — Gap Item 9 (`PENDING_GAPS_AND_ROADMAP.md`): build de produção sem os 5 repos irmãos
+- **Problema**: `npm run build` do Shell executa `cp -r ../sp-ui-chat/build/* ...` (e mais 4 repos) esperando-os já buildados como diretórios-irmãos, mas `release.yml` só fazia checkout do próprio `sp-ui-shell` — falhava sempre com `cp: cannot stat '../sp-ui-chat/build/*': No such file or directory`, então `tauri build` nunca chegava no estágio de empacotar o app de verdade.
+- **Fix**: `publish-tauri` agora faz checkout de `sp-ui-core` + os 5 remotes (`sp-ui-chat`, `sp-ui-vault`, `sp-ui-projects`, `sp-ui-rag`, `sp-ui-coding`) como diretórios-irmãos de `sp-ui-shell` (mesmo `$GITHUB_WORKSPACE`, `ref: main` fixo — não herda a tag/ref do Shell, que não existe nos repos irmãos), instala `sp-ui-core` uma única vez (consumido como source via `file:../sp-ui-core` por todos, sem precisar de 6 cópias) e builda os 5 remotes antes do `tauri-action`. `projectPath: sp-ui-shell` adicionado ao `tauri-action` pra apontar pro subdiretório correto.
+- **Validado localmente** (git worktrees, sem tocar nos repos reais): os 5 remotes buildam com sucesso e `sp-ui-shell/build/assets/{sp_ui_chat,sp_ui_vault,sp_ui_projects,sp_ui_rag,sp_ui_coding}/` vêm com conteúdo real (20-27 arquivos cada) — o `cp -r` que sempre falhava agora funciona de ponta a ponta.
+
+### Fixed — Sidecar do `sp-service` apontava para um repositório inexistente
+- **Problema**: o step "Download & Scaffold Backend Sidecar" baixava de `https://github.com/sovereign-platform/sp-service/releases/...` — organização `sovereign-platform` não existe (o projeto é `personal-digital-sovereignty`), e o nome de asset esperado (`sp-service-<triple>`) não bate com o que `sp-service/ci.yml` publica (`sp-service-linux-amd64-binary`, `sp-service-windows-amd64-binary.exe`, `sp-service-macos-arm64-binary`). Resultado: download sempre falhava e o script **silenciosamente** gerava um binário dummy (`exit 0`) como sidecar — mesmo corrigindo o gap acima, o app resultante teria um backend fantasma.
+- **Fix**: URL corrigida pra `personal-digital-sovereignty/sp-service`, nomes de asset alinhados com o que o `ci.yml` do backend realmente publica, e a triple do macOS corrigida de `x86_64-apple-darwin` (Intel, nunca compilado) pra `aarch64-apple-darwin` (Apple Silicon, o único target que `sp-service` builda — `macos-latest` também roda em Apple Silicon). Removido o fallback de binário dummy: `curl -fL` sem swallow de erro — **fail loud**, conforme a regra do projeto de nunca mascarar falha de dependência externa. Se o release do backend não existir pra aquela tag, o job falha de verdade em vez de publicar um app quebrado silenciosamente.
+- **Validado**: `curl` contra a release real (`nightly`) retorna HTTP 200 pros 3 assets corrigidos.
+- **Caveat encontrado durante a validação**: a release `v1.7.0-rc1` do `sp-service` (a que uma tag `v1.7.0-rc1` neste repo tentaria consumir) **não tem nenhum asset** — `publish-stable` do `sp-service` nunca rodou de verdade (histórico de runs é só `push main`, nunca `push tags/*`). Testar o pipeline completo via tag real vai falhar até alguém cortar uma tag de verdade no `sp-service` primeiro (ou usar `workflow_dispatch` com `backend_tag: nightly`, que já tem assets).
+
+---
+
 ## [1.7.0-dev] - 2026-08-04
 
 *CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), da rodada de segurança abaixo (2026-08-04) e da correção de uma regressão de versão: uma sessão anterior havia renomeado esta entrada para `1.5.0-rc.1` (alinhando com a tag suite-wide cortada nos outros 7 repos), mas isso contradizia a correção documentada logo abaixo (`1.3.2` → `1.7.0-dev`, refletindo a tag real `v1.6.0` já shippada). Renomeado de volta para `1.7.0-dev` — a numeração deste repo segue sua própria linhagem, não a da suite.*

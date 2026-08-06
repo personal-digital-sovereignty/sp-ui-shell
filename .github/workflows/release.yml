@@ -27,11 +27,104 @@ jobs:
         platform: [macos-latest, ubuntu-22.04, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout repository
+      # --------------------------------------------------
+      # sp-ui-shell só builda de verdade com os 5 repos irmãos
+      # de UI (remotes federados) e o sp-ui-core (lib compartilhada)
+      # já presentes como diretórios-irmãos — o `npm run build` do
+      # Shell faz `cp -r ../sp-ui-chat/build/* ...` etc. Sem isso,
+      # o build falha com "cannot stat '../sp-ui-chat/build/*'".
+      # --------------------------------------------------
+      - name: Checkout sp-ui-shell
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: sp-ui-shell
 
-      - name: Setup sp-ui-core
-        uses: personal-digital-sovereignty/sp-ui-core@f66fca5cdda2b714775342fecc4901c0630c0fca # release-v1.5.0-rc.1
+      - name: Checkout sp-ui-core
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-core
+          ref: main
+          path: sp-ui-core
+
+      - name: Checkout sp-ui-chat
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-chat
+          ref: main
+          path: sp-ui-chat
+
+      - name: Checkout sp-ui-vault
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-vault
+          ref: main
+          path: sp-ui-vault
+
+      - name: Checkout sp-ui-projects
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-projects
+          ref: main
+          path: sp-ui-projects
+
+      - name: Checkout sp-ui-rag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-rag
+          ref: main
+          path: sp-ui-rag
+
+      - name: Checkout sp-ui-coding
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: personal-digital-sovereignty/sp-ui-coding
+          ref: main
+          path: sp-ui-coding
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            sp-ui-shell/package-lock.json
+            sp-ui-core/package-lock.json
+            sp-ui-chat/package-lock.json
+            sp-ui-vault/package-lock.json
+            sp-ui-projects/package-lock.json
+            sp-ui-rag/package-lock.json
+            sp-ui-coding/package-lock.json
+
+      - name: Install sp-ui-core dependencies
+        run: npm install
+        working-directory: sp-ui-core
+
+      # sp-ui-core é consumido como source (file:../sp-ui-core, sem build
+      # próprio) — cada remote abaixo resolve @sp/ui-core direto pro
+      # checkout acima, que é irmão de todos (mesmo $GITHUB_WORKSPACE).
+      - name: Build sp-ui-chat (remote federado)
+        run: npm install && npm run build
+        working-directory: sp-ui-chat
+
+      - name: Build sp-ui-vault (remote federado)
+        run: npm install && npm run build
+        working-directory: sp-ui-vault
+
+      - name: Build sp-ui-projects (remote federado)
+        run: npm install && npm run build
+        working-directory: sp-ui-projects
+
+      - name: Build sp-ui-rag (remote federado)
+        run: npm install && npm run build
+        working-directory: sp-ui-rag
+
+      - name: Build sp-ui-coding (remote federado)
+        run: npm install && npm run build
+        working-directory: sp-ui-coding
+
+      - name: Install sp-ui-shell dependencies
+        run: npm install
+        working-directory: sp-ui-shell
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
@@ -42,16 +135,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
-      - name: Download & Scaffold Backend Sidecar
+      # --------------------------------------------------
+      # Baixa o binário real do sp-service (org e nome de asset
+      # corretos — a versão anterior apontava pra sovereign-platform/
+      # sp-service, que não existe, e caía num stub dummy que só
+      # retornava 0. Sem fallback silencioso: se o release do backend
+      # não existir pra essa tag, o job falha (regra do projeto —
+      # nunca mascarar falha de dependência externa).
+      # --------------------------------------------------
+      - name: Download Backend Sidecar (sp-service)
         shell: bash
+        working-directory: sp-ui-shell
         env:
           EVENT_NAME: ${{ github.event_name }}
           CLIENT_PAYLOAD_TAG: ${{ github.event.client_payload.tag }}
           INPUT_BACKEND_TAG: ${{ github.event.inputs.backend_tag }}
           REF_NAME: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           mkdir -p src-tauri/binaries
-          
+
           # Determine version tag to fetch
           if [ "$EVENT_NAME" = "repository_dispatch" ]; then
             TAG_NAME="$CLIENT_PAYLOAD_TAG"
@@ -60,55 +163,35 @@ jobs:
           else
             TAG_NAME="$REF_NAME"
           fi
-          
-          echo "Target Release Tag: $TAG_NAME"
-          
-          # Determine Platform Target Triple
+          echo "Target sp-service release tag: $TAG_NAME"
+
+          # Determine platform target triple + release asset name
+          # (tem que bater com o que sp-service/.github/workflows/ci.yml
+          # realmente publica em publish-nightly/publish-stable)
           if [ "$RUNNER_OS" == "Linux" ]; then
             TRIPLE="x86_64-unknown-linux-gnu"
+            ASSET_NAME="sp-service-linux-amd64-binary"
             SUFFIX=""
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            TRIPLE="x86_64-apple-darwin"
+            TRIPLE="aarch64-apple-darwin"
+            ASSET_NAME="sp-service-macos-arm64-binary"
             SUFFIX=""
           elif [ "$RUNNER_OS" == "Windows" ]; then
             TRIPLE="x86_64-pc-windows-msvc"
+            ASSET_NAME="sp-service-windows-amd64-binary.exe"
             SUFFIX=".exe"
           fi
-          
-          echo "Selected Target Triple: $TRIPLE"
-          
-          # Attempt download from sp-service repository release assets
-          URL="https://github.com/sovereign-platform/sp-service/releases/download/${TAG_NAME}/sp-service-${TRIPLE}${SUFFIX}"
-          echo "Downloading from $URL"
-          
-          curl -L -o "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}" "$URL" || echo "Warning: Fetch failed, scaffolding dummy sidecar binary..."
-          
-          # Compile/Build Gate fallback: Generate valid dummy binary if download failed
-          if [ ! -s "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}" ]; then
-            echo "Scaffolding compile-safe mock sidecar binary..."
-            if [ "$RUNNER_OS" == "Windows" ]; then
-              echo 'int main() { return 0; }' > dummy.c
-              gcc dummy.c -o "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}" || echo "Warning: gcc build failed, touching dummy file"
-              if [ ! -f "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}" ]; then
-                touch "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}"
-              fi
-            else
-              echo -e '#!/bin/sh\nexit 0' > "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}"
-              chmod +x "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}"
-            fi
-          else
-            # Ensure Unix executable permission for downloaded binary
-            if [ "$RUNNER_OS" != "Windows" ]; then
-              chmod +x "src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}"
-            fi
+
+          SIDECAR_PATH="src-tauri/binaries/sp-service-${TRIPLE}${SUFFIX}"
+          URL="https://github.com/personal-digital-sovereignty/sp-service/releases/download/${TAG_NAME}/${ASSET_NAME}"
+          echo "Downloading $URL"
+          curl -fL -o "$SIDECAR_PATH" "$URL"
+
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            chmod +x "$SIDECAR_PATH"
           fi
-          
-          # Duplicate for macOS Silicon if on Apple platform to support dual target compiles
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            cp "src-tauri/binaries/sp-service-x86_64-apple-darwin" "src-tauri/binaries/sp-service-aarch64-apple-darwin"
-          fi
-          
-          echo "Scaffolded sidecars list:"
+
+          echo "Sidecar ready:"
           ls -la src-tauri/binaries/
 
       - name: Build and Publish Desktop Package
@@ -116,6 +199,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: sp-ui-shell
           tagName: ${{ github.ref_name }}
           releaseName: 'Sovereign Desktop ${{ github.ref_name }}'
           releaseBody: 'Unified Sovereign Platform Desktop Release (UI + Anchor Backend).'
