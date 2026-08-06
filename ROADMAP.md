@@ -2,7 +2,7 @@
 
 **Shell Micro-Frontend (Host)** — App Tauri/SvelteKit e host de Module Federation do Sovereign Pair. Consome os demais microfrontends (`sp-ui-chat`, `sp-ui-vault`, `sp-ui-projects`, `sp-ui-rag`, `sp-ui-coding`) como remotes independentes.
 
-**Versão Atual:** 1.7.0-dev
+**Versão Atual:** 1.7.0
 **Última Atualização:** 2026-08-06
 
 ---

@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] — Fix: Desktop CD nunca produziu um app de verdade
+## [1.7.0] - 2026-08-06
+
+*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), da rodada de segurança (2026-08-04), da correção do Desktop CD e da janela principal que nunca aparecia (2026-08-06). Uma sessão anterior havia renomeado esta entrada para `1.5.0-rc.1` (alinhando com a tag suite-wide cortada nos outros 7 repos) — a numeração deste repo segue sua própria linhagem, não a da suite. Lançada como `v1.7.0` de verdade em 2026-08-06, junto com o resto da suite.*
 
 *Investigado em 2026-08-06 depois de o usuário não encontrar o app em `/Applications` no macOS. Descoberta: o workflow "Sovereign Desktop CD" (`release.yml`) nunca teve sucesso desde a modularização — todo o histórico de runs é falha/cancelado, e este repo nunca publicou uma release. Dois bugs independentes, ambos corrigidos nesta rodada.*
 
@@ -33,11 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Windows**: `npm run build` falhava com "The syntax of the command is incorrect" — o script usava `mkdir -p`/`cp -r` (POSIX, incompatível com `cmd.exe`). Substituído por `scripts/bundle-remotes.mjs` (Node `fs.cpSync`, cross-platform de verdade).
 - **Resultado real, confirmado em CI** (run `31061535829`, `workflow_dispatch`): as 3 plataformas completaram com sucesso pela primeira vez desde a modularização, gerando `.dmg`+`.app.tar.gz` (macOS), `.deb`+`.rpm`+`.AppImage` (Linux) e `.exe`(NSIS)+`.msi` (Windows) — publicados como release draft (`tag: main`).
 
----
-
-## [1.7.0-dev] - 2026-08-04
-
-*CI/CD hardening pós-tag `v1.6.0` (2026-06-18 a 2026-06-20), seguido de GAP-RS-02 e Item 7 (2026-08-01), da rodada de segurança abaixo (2026-08-04) e da correção de uma regressão de versão: uma sessão anterior havia renomeado esta entrada para `1.5.0-rc.1` (alinhando com a tag suite-wide cortada nos outros 7 repos), mas isso contradizia a correção documentada logo abaixo (`1.3.2` → `1.7.0-dev`, refletindo a tag real `v1.6.0` já shippada). Renomeado de volta para `1.7.0-dev` — a numeração deste repo segue sua própria linhagem, não a da suite.*
+### Fixed — Janela principal nunca aparecia sozinha (UI "em branco")
+- **Problema**: usuário instalou o `.dmg` do draft acima e reportou o app abrindo com a UI em branco. Investigado recriando o build exato (5 remotes + shell) e servindo como estático real num Chromium headless (Playwright): a UI renderiza 100% (sidebar, dashboard, o remote `sp_ui_chat` federado até executa) — os únicos erros são `ERR_CONNECTION_REFUSED` pro `sp-service` (esperado, backend não estava rodando). **O bundle do frontend nunca esteve quebrado.**
+- **Causa real**: as janelas `main`/`spotlight` nascem com `"visible": false` (`tauri.conf.json`), mas nada no código — Rust ou frontend — jamais chamava `.show()` fora do clique manual no ícone da bandeja ("Abrir Painel Principal"). A janela principal nunca aparecia sozinha no boot.
+- **Fix**: `src-tauri/src/lib.rs` agora mostra e foca a janela `main` ao final do `.setup()`, mesmo padrão já usado no handler do tray. `cargo check` limpo.
 
 ### Added
 - **Painel "Resilience Shield" (GAP-RS-02)**: Nova seção em `engineer/analytics/+page.svelte` renderizando o status por-API do Resilience Shield (`telemetryState.apiEntries`), com badge e ícone distintos para `HEALTHY`/`UNREACHABLE`/`DEAD`/`EMPTY`/`SKIP` — antes esse dado era buscado do backend mas nenhum componente da UI o exibia.
